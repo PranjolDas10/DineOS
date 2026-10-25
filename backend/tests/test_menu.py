@@ -5,14 +5,14 @@ from typing import Any
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import MakeTenant
+from tests.conftest import MakeTenant, auth_headers
 
 pytestmark = pytest.mark.anyio
 
 
 @pytest.fixture
 async def tenant(make_tenant: MakeTenant) -> dict[str, str]:
-    return {"X-Tenant-Id": str(await make_tenant())}
+    return auth_headers(await make_tenant())
 
 
 async def post(client: AsyncClient, url: str, body: dict[str, Any], h: dict[str, str]) -> Any:
@@ -77,8 +77,8 @@ async def test_line_needs_exactly_one_target(client: AsyncClient, tenant: dict[s
 async def test_line_cannot_use_other_tenants_ingredient(
     client: AsyncClient, make_tenant: MakeTenant
 ) -> None:
-    a = {"X-Tenant-Id": str(await make_tenant())}
-    b = {"X-Tenant-Id": str(await make_tenant())}
+    a = auth_headers(await make_tenant())
+    b = auth_headers(await make_tenant())
     onion_b = await post(client, "/v1/ingredients", {"name": "Onion", "base_unit": "g"}, b)
     dish_a = await post(
         client, "/v1/recipes", {"name": "Dal", "yield_qty": 1, "yield_unit": "each"}, a

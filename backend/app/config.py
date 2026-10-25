@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +8,15 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str
+    # HS256 signing key for access tokens. RFC 7518 3.2: at least 256 bits.
+    jwt_secret: str = Field(min_length=32)
+    # S3 API (SeaweedFS locally). Credentials come from the standard AWS_* env vars, read by boto3.
+    s3_endpoint_url: str = "http://localhost:8333"
+    # Presigned URLs embed the host in their signature, so they must be signed for the host
+    # the phone will call (in Compose the API reaches storage as seaweedfs:8333, the phone can't).
+    s3_public_endpoint_url: str = "http://localhost:8333"
+    # Cheapest model first; the eval harness decides whether a bigger one earns its cost.
+    receipt_model: str = "claude-haiku-5-5"
 
 
 class MigrationSettings(BaseSettings):

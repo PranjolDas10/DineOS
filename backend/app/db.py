@@ -1,9 +1,8 @@
 from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import Annotated, Any, ClassVar
+from typing import Any, ClassVar
 from uuid import UUID
 
-from fastapi import Depends, Header
 from sqlalchemy import DateTime, FetchedValue, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -47,15 +46,3 @@ async def set_tenant(session: AsyncSession, tenant_id: UUID) -> None:
     await session.execute(
         text("SELECT set_config('app.tenant_id', :t, true)"), {"t": str(tenant_id)}
     )
-
-
-async def tenant_session(x_tenant_id: Annotated[UUID, Header()]) -> AsyncIterator[AsyncSession]:
-    """One transaction per request, scoped to the tenant. Commit on success, rollback on error."""
-    # ponytail: dev-only stub; the auth slice replaces the header with the JWT tenant claim.
-    async with SessionLocal() as session, session.begin():
-        await set_tenant(session, x_tenant_id)
-        yield session
-
-
-# scope="function": commit before the response is sent, so a failed commit is never a 2xx.
-TenantSession = Annotated[AsyncSession, Depends(tenant_session, scope="function")]

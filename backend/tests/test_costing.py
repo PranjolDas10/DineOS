@@ -10,7 +10,7 @@ from httpx import AsyncClient
 
 from app.menu.costing import Line, cents, cost_recipes, percent
 from tests import mock_menu
-from tests.conftest import MakeTenant
+from tests.conftest import MakeTenant, auth_headers
 
 pytestmark = pytest.mark.anyio
 
@@ -56,7 +56,7 @@ def test_rounding_is_half_even_and_once() -> None:
 async def menu(
     client: AsyncClient, make_tenant: MakeTenant
 ) -> tuple[dict[str, str], dict[str, str]]:
-    headers = {"X-Tenant-Id": str(await make_tenant())}
+    headers = auth_headers(await make_tenant())
     return headers, await mock_menu.load(client, headers)
 
 
@@ -105,6 +105,6 @@ async def test_latest_price_is_by_observed_at(
 
 
 async def test_unknown_recipe_cost_is_404(client: AsyncClient, make_tenant: MakeTenant) -> None:
-    headers = {"X-Tenant-Id": str(await make_tenant())}
+    headers = auth_headers(await make_tenant())
     resp = await client.get(f"/v1/recipes/{UUID(int=0)}/cost", headers=headers)
     assert resp.status_code == 404

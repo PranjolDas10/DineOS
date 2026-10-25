@@ -1,5 +1,6 @@
 """HTTP conventions shared by every module: RFC 9457 errors, ETag/If-Match, cursor pages."""
 
+from collections.abc import Mapping
 from http import HTTPStatus
 from typing import Annotated, Any
 from uuid import UUID
@@ -21,17 +22,21 @@ class Page[T](BaseModel):
 
 
 class Problem(Exception):
-    def __init__(self, status: int, detail: str) -> None:
+    def __init__(self, status: int, detail: str, headers: dict[str, str] | None = None) -> None:
         self.status = status
         self.detail = detail
+        self.headers = headers
 
 
-def problem(status: int, detail: str, **extra: Any) -> JSONResponse:
+def problem(
+    status: int, detail: str, headers: Mapping[str, str] | None = None, **extra: Any
+) -> JSONResponse:
     # type about:blank means "nothing beyond the HTTP status", so title is the status phrase.
     body = {"type": "about:blank", "title": HTTPStatus(status).phrase, "status": status}
     return JSONResponse(
         {**body, "detail": detail, **extra},
         status_code=status,
+        headers=headers,
         media_type="application/problem+json",
     )
 
@@ -61,11 +66,11 @@ _CONSTRAINT_STATUS = {
 def install_problem_handlers(app: FastAPI) -> None:
     @app.exception_handler(Problem)
     async def _problem(_: Request, exc: Problem) -> JSONResponse:
-        return problem(exc.status, exc.detail)
+        return problem(exc.status, exc.detail, exc.headers)
 
     @app.exception_handler(HTTPException)
     async def _http(_: Request, exc: HTTPException) -> JSONResponse:
-        return problem(exc.status_code, str(exc.detail))
+        return problem(exc.status_code, str(exc.detail), exc.headers)
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:

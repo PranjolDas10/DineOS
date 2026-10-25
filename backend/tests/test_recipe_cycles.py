@@ -2,7 +2,6 @@
 
 import asyncio
 from typing import Any
-from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
@@ -10,14 +9,14 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from app.db import SessionLocal, set_tenant
-from tests.conftest import MakeTenant
+from tests.conftest import MakeTenant, auth_headers
 
 pytestmark = pytest.mark.anyio
 
 
 @pytest.fixture
 async def tenant(make_tenant: MakeTenant) -> dict[str, str]:
-    return {"X-Tenant-Id": str(await make_tenant())}
+    return auth_headers(await make_tenant())
 
 
 async def recipe(client: AsyncClient, name: str, h: dict[str, str]) -> str:
@@ -61,12 +60,13 @@ async def test_shared_sub_recipe_is_not_a_cycle(
 
 
 async def test_concurrent_edits_cannot_both_close_a_cycle(
-    client: AsyncClient, tenant: dict[str, str]
+    client: AsyncClient, make_tenant: MakeTenant
 ) -> None:
     """Tx1 adds A -> B and stays open. Tx2 adds B -> A: without the lock it wouldn't see A -> B
     and both would commit. With it, Tx2 waits for Tx1's commit, then sees the edge and fails."""
+    tenant_id = await make_tenant()
+    tenant = auth_headers(tenant_id)
     a, b = await recipe(client, "A", tenant), await recipe(client, "B", tenant)
-    tenant_id = UUID(tenant["X-Tenant-Id"])
     add_line = text("INSERT INTO recipe_lines (recipe_id, sub_recipe_id, qty) VALUES (:r, :s, 1)")
 
     async with SessionLocal() as tx1, SessionLocal() as tx2:

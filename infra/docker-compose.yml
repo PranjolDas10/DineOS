@@ -1,6 +1,17 @@
 # Local dev stack. Dev-only credentials; real secrets never go in this file.
 name: dineos
 
+# Settings shared by every container that runs the backend image.
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+  # Dev-only default; any real deployment sets its own.
+  JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-jwt-secret-change-me-0123456789}
+  S3_ENDPOINT_URL: http://seaweedfs:8333
+  S3_PUBLIC_ENDPOINT_URL: http://localhost:8333
+  AWS_ACCESS_KEY_ID: dev
+  AWS_SECRET_ACCESS_KEY: dev
+  AWS_DEFAULT_REGION: us-east-1
+
 services:
   postgres:
     image: postgres:18
@@ -19,12 +30,30 @@ services:
       timeout: 3s
       retries: 20
 
+  # S3-compatible storage for receipt photos (SeaweedFS; MinIO no longer publishes free images).
+  # Same boto3 code works against AWS S3. No auth configured: dev only, bound to localhost.
+  seaweedfs:
+    image: chrislusf/seaweedfs
+    command: ["server", "-s3", "-dir=/data"]
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - s3data:/data
+
+  # One-shot: creates the receipts bucket (no-op if it exists), retrying until storage is up.
+  storage-init:
+    build: ../backend
+    command: ["python", "-m", "app.receipts.storage"]
+    environment: *backend-env
+    depends_on:
+      - seaweedfs
+
   # One-shot: applies migrations as the owner role, then exits. The API starts only after it succeeds.
   migrate:
     build: ../backend
     command: ["alembic", "upgrade", "head"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+      <<: *backend-env
       MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@postgres:5432/dineos
     depends_on:
       postgres:
@@ -32,12 +61,13 @@ services:
 
   api:
     build: ../backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+    environment: *backend-env
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       migrate:
+        condition: service_completed_successfully
+      storage-init:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
@@ -45,5 +75,20 @@ services:
       timeout: 3s
       retries: 10
 
+  # Background jobs (receipt parsing). Scale with: docker compose up --scale worker=3
+  worker:
+    build: ../backend
+    command: ["python", "-m", "app.worker"]
+    environment:
+      <<: *backend-env
+      # Empty means parse jobs fail and retry with backoff until a key is set.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      storage-init:
+        condition: service_completed_successfully
+
 volumes:
   pgdata:
+  s3data:
