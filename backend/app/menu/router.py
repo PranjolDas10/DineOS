@@ -9,12 +9,14 @@ from app.db import TenantSession
 from app.menu import service
 from app.menu.models import MenuItem, Recipe
 from app.menu.schemas import (
+    FoodCostReport,
     LineIn,
     LineOut,
     Lines,
     MenuItemCreate,
     MenuItemOut,
     MenuItemUpdate,
+    RecipeCostOut,
     RecipeCreate,
     RecipeOut,
     RecipeUpdate,
@@ -114,3 +116,13 @@ async def update_menu_item(
     row = await crud.update_versioned(session, MenuItem, item_id, version, values)
     response.headers["ETag"] = etag(row.version)
     return row
+
+
+@router.get("/recipes/{recipe_id}/cost", response_model=RecipeCostOut)
+async def get_recipe_cost(recipe_id: UUID, session: TenantSession) -> Any:
+    return await service.recipe_cost(session, recipe_id)
+
+
+@router.get("/reports/food-cost", response_model=FoodCostReport)
+async def food_cost_report(session: TenantSession) -> Any:
+    return {"items": await service.food_cost_report(session)}
