@@ -8,7 +8,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api import install_problem_handlers
 from app.db import engine, get_session
+from app.inventory.router import router as inventory_router
 
 
 @asynccontextmanager
@@ -18,6 +20,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="DineOS", lifespan=lifespan)
+install_problem_handlers(app)
+app.include_router(inventory_router)
 
 
 @app.get("/healthz")

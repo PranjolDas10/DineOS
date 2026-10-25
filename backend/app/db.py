@@ -1,13 +1,39 @@
 from collections.abc import AsyncIterator
+from datetime import datetime
+from typing import Annotated, Any, ClassVar
 from uuid import UUID
 
-from sqlalchemy import text
+from fastapi import Depends, Header
+from sqlalchemy import DateTime, FetchedValue, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.config import settings
 
 engine = create_async_engine(settings.database_url, pool_pre_ping=True)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+
+class Base(DeclarativeBase):
+    # All timestamps are timestamptz, so aware datetimes bind correctly.
+    type_annotation_map: ClassVar[dict[Any, Any]] = {datetime: DateTime(timezone=True)}
+
+
+class Entity(Base):
+    """id is uuidv7() in the DB, or client-generated (offline clients). tenant_id is not mapped:
+    the DB fills it from the session's tenant, so app code can't set it wrong."""
+
+    __abstract__ = True
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=FetchedValue())
+
+
+class Versioned(Entity):
+    """Editable record with an optimistic-locking version (exposed as the ETag)."""
+
+    __abstract__ = True
+    version: Mapped[int]
+    created_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
@@ -21,3 +47,15 @@ async def set_tenant(session: AsyncSession, tenant_id: UUID) -> None:
     await session.execute(
         text("SELECT set_config('app.tenant_id', :t, true)"), {"t": str(tenant_id)}
     )
+
+
+async def tenant_session(x_tenant_id: Annotated[UUID, Header()]) -> AsyncIterator[AsyncSession]:
+    """One transaction per request, scoped to the tenant. Commit on success, rollback on error."""
+    # ponytail: dev-only stub; the auth slice replaces the header with the JWT tenant claim.
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, x_tenant_id)
+        yield session
+
+
+# scope="function": commit before the response is sent, so a failed commit is never a 2xx.
+TenantSession = Annotated[AsyncSession, Depends(tenant_session, scope="function")]

@@ -1,43 +1,17 @@
 """Tenant isolation is enforced by Postgres (RLS + composite FKs + grants), not by app code.
-Setup runs as the owner role; every assertion runs as the API's dineos_app role."""
+Tenants are created as the owner role; everything else runs as the API's dineos_app role."""
 
-import uuid
-from collections.abc import AsyncIterator
 from typing import Any
 from uuid import UUID
 
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
-from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.config import MigrationSettings
 from app.db import SessionLocal, set_tenant
+from tests.conftest import MakeTenant
 
 pytestmark = pytest.mark.anyio
-
-
-@pytest.fixture
-async def tenants() -> AsyncIterator[tuple[UUID, UUID, UUID]]:
-    """Tenants A and B with one supplier each. Yields (a, b, b's supplier id)."""
-    owner = create_async_engine(MigrationSettings().migration_database_url)
-    a, b, b_supplier = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
-    ids = {"a": a, "b": b}
-    async with owner.begin() as conn:
-        await conn.execute(text("INSERT INTO tenants (id, name) VALUES (:a, 'A'), (:b, 'B')"), ids)
-        await conn.execute(
-            text("INSERT INTO suppliers (tenant_id, name) VALUES (:a, 'Sysco')"), ids
-        )
-        await conn.execute(
-            text("INSERT INTO suppliers (id, tenant_id, name) VALUES (:s, :b, 'Restaurant Depot')"),
-            {**ids, "s": b_supplier},
-        )
-    yield a, b, b_supplier
-    async with owner.begin() as conn:
-        for table in ("ingredients", "suppliers"):
-            await conn.execute(text(f"DELETE FROM {table} WHERE tenant_id IN (:a, :b)"), ids)
-        await conn.execute(text("DELETE FROM tenants WHERE id IN (:a, :b)"), ids)
-    await owner.dispose()
 
 
 async def as_app(tenant_id: UUID | None, sql: str, **params: object) -> list[Any]:
@@ -47,6 +21,17 @@ async def as_app(tenant_id: UUID | None, sql: str, **params: object) -> list[Any
             await set_tenant(session, tenant_id)
         result = await session.execute(text(sql), params)
         return list(result.scalars().all())
+
+
+@pytest.fixture
+async def tenants(make_tenant: MakeTenant) -> tuple[UUID, UUID, UUID]:
+    """Tenants A and B with one supplier each. Returns (a, b, b's supplier id)."""
+    a, b = await make_tenant(), await make_tenant()
+    await as_app(a, "INSERT INTO suppliers (name) VALUES ('Sysco') RETURNING id")
+    [b_supplier] = await as_app(
+        b, "INSERT INTO suppliers (name) VALUES ('Restaurant Depot') RETURNING id"
+    )
+    return a, b, b_supplier
 
 
 async def test_reads_only_own_tenant(tenants: tuple[UUID, UUID, UUID]) -> None:
