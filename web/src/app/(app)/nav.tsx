@@ -1,0 +1,33 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChartNoAxesColumn, CookingPot } from "lucide-react";
+
+const LINKS = [
+  { href: "/", label: "Profit", icon: ChartNoAxesColumn },
+  { href: "/menu", label: "Menu costs", icon: CookingPot },
+];
+
+export function Nav() {
+  const pathname = usePathname();
+  return (
+    <ul className="flex gap-1 lg:grid">
+      {LINKS.map(({ href, label, icon: Icon }) => {
+        const current = pathname === href;
+        return (
+          <li key={href}>
+            <Link
+              href={href}
+              aria-current={current ? "page" : undefined}
+              className="relative flex min-h-11 items-center gap-3 rounded-md px-3 font-medium text-fg-muted hover:bg-surface-sunken hover:text-fg aria-[current=page]:bg-surface aria-[current=page]:text-fg aria-[current=page]:shadow-[inset_3px_0_0_var(--primary)]"
+            >
+              <Icon aria-hidden className="size-5" />
+              {label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Semantic tokens only: utilities like bg-surface / text-fg-muted map to design/tokens.json. */
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-text: var(--primary-text);
+  --color-primary-soft: var(--primary-soft);
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-focus: var(--focus);
+  --color-chart-food: var(--chart-food);
+  --color-chart-commission: var(--chart-commission);
+  --color-chart-labor: var(--chart-labor);
+  --color-chart-profit: var(--chart-profit);
+  --color-chart-loss: var(--chart-loss);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --font-sans: var(--font-plex), "Segoe UI", Roboto, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background: var(--surface);
+    color: var(--fg);
+    font-size: 1rem;
+    line-height: 1.5;
+    /* Money and quantities line up in columns everywhere. */
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      transition-duration: 0s !important;
+      animation-duration: 0s !important;
+    }
+  }
+}
+
+@layer components {
+  .field {
+    min-height: 3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    padding: 0 0.875rem;
+    font-weight: 400;
+  }
+  .btn-primary {
+    min-height: 3rem;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: var(--on-primary);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+@layer components {
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .data-table :is(th, td) {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  .data-table thead th {
+    padding-block: 0.5rem;
+    border-bottom-color: var(--line-strong);
+    color: var(--fg-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .data-table tbody th {
+    font-weight: 500;
+  }
+  .data-table .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+}

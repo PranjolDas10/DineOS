@@ -84,6 +84,18 @@ services:
       timeout: 3s
       retries: 10
 
+  # Dashboard. Talks to the API over the Compose network; tokens stay in its httpOnly cookies.
+  web:
+    build: ../web
+    environment:
+      API_URL: http://api:8000
+      DEMO_LOGIN: ${DEMO_LOGIN:-0}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
   # Background jobs (receipt parsing). Scale with: docker compose up --scale worker=3
   worker:
     build: ../backend
