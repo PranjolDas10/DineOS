@@ -26,7 +26,8 @@ jobs:
           --health-timeout 3s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql+asyncpg://dineos:dineos@localhost:5432/dineos
+      DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@localhost:5432/dineos
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@localhost:5432/dineos
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -36,6 +37,9 @@ jobs:
       - run: uv run ruff check
       - run: uv run ruff format --check
       - run: uv run mypy
+      # Same role script Compose runs on a fresh volume.
+      - run: psql postgresql://dineos:dineos@localhost:5432/dineos -f ../infra/postgres/init/01-app-role.sql
+      - run: uv run alembic upgrade head
       - run: uv run pytest
 
   docker:

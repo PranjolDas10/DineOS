@@ -12,21 +12,33 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dineos -d dineos"]
       interval: 2s
       timeout: 3s
       retries: 20
 
-  api:
+  # One-shot: applies migrations as the owner role, then exits. The API starts only after it succeeds.
+  migrate:
     build: ../backend
+    command: ["alembic", "upgrade", "head"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://dineos:dineos@postgres:5432/dineos
-    ports:
-      - "127.0.0.1:8000:8000"
+      DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@postgres:5432/dineos
     depends_on:
       postgres:
         condition: service_healthy
+
+  api:
+    build: ../backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
       interval: 5s
