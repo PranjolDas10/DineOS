@@ -287,3 +287,36 @@ async def test_confirm_rejects_incomplete_or_stale_review(
 
     stale = await client.post(url, json={"lines": lines}, headers={**headers, "If-Match": '"1"'})
     assert stale.status_code == 412
+
+
+async def test_eval_harness_scores_confirmed_receipts(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]], fake_claude: list[str]
+) -> None:
+    """The label written at confirm time is exactly what the harness scores against."""
+    from app.receipts import evals
+
+    tenant_id, headers = tenant
+    detail, tag = await parsed(client, tenant)
+    lines = decisions(detail, None)
+    lines[0].pop("base_qty")  # skip both lines: no ingredient mapping needed for the eval
+    body = {
+        "supplier_name": "Restaurant Depot",
+        "receipt_date": "2026-10-20",
+        "total_cents": 8248,
+        "lines": lines,
+    }
+    resp = await client.post(
+        f"/v1/receipts/{detail['id']}/confirm", json=body, headers={**headers, "If-Match": tag}
+    )
+    assert resp.status_code == 200, resp.text
+
+    [report] = await evals.run(tenant_id, ["claude-haiku-5-5"], limit=None)
+    assert report["receipts"] == 1
+    assert report["header_accuracy_pct"] == {
+        "supplier_name": 100.0,
+        "receipt_date": 100.0,
+        "total_cents": 100.0,
+    }
+    # The fake model misread the ghee line ("(smudged)" suffix); the owner fixed it.
+    assert report["line_recall_pct"] == 100.0
+    assert report["line_field_accuracy_pct"]["line_total_cents"] == 100.0
