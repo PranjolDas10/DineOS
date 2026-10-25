@@ -11,6 +11,7 @@ x-backend-env: &backend-env
   AWS_ACCESS_KEY_ID: dev
   AWS_SECRET_ACCESS_KEY: dev
   AWS_DEFAULT_REGION: us-east-1
+  REDIS_URL: redis://redis:6379/0
 
 services:
   postgres:
@@ -29,6 +30,12 @@ services:
       interval: 2s
       timeout: 3s
       retries: 20
+
+  # Rate-limit buckets (and later cache). Nothing persistent: no volume.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
 
   # S3-compatible storage for receipt photos (SeaweedFS; MinIO no longer publishes free images).
   # Same boto3 code works against AWS S3. No auth configured: dev only, bound to localhost.
@@ -65,6 +72,8 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
+      redis:
+        condition: service_started
       migrate:
         condition: service_completed_successfully
       storage-init:

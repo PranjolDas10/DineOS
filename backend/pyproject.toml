@@ -11,6 +11,7 @@ dependencies = [
     "fastapi>=0.115",
     "pydantic-settings>=2.6",
     "pyjwt>=2.15.1",
+    "redis>=8.1.0",
     "sqlalchemy[asyncio]>=2.0.36",
     "tzdata>=2026.5",
     "uvicorn>=0.32",

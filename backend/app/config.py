@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     # HS256 signing key for access tokens. RFC 7518 3.2: at least 256 bits.
     jwt_secret: str = Field(min_length=32)
     # S3 API (SeaweedFS locally). Credentials come from the standard AWS_* env vars, read by boto3.
+    # Cache and rate-limit buckets only: everything in it can be lost without harm.
+    redis_url: str = "redis://localhost:6379/0"
     s3_endpoint_url: str = "http://localhost:8333"
     # Presigned URLs embed the host in their signature, so they must be signed for the host
     # the phone will call (in Compose the API reaches storage as seaweedfs:8333, the phone can't).

@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from app import ratelimit
 from app.auth.tokens import issue_access
 from app.config import MigrationSettings
 from app.db import engine
@@ -31,10 +32,14 @@ async def _dispose_pool() -> AsyncIterator[None]:
     Requested by the DB fixtures below (not autouse, so pure sync tests need no event loop)."""
     yield
     await engine.dispose()
+    await ratelimit.client.aclose()  # same reason: its connections belong to this loop
 
 
 @pytest.fixture
 async def client(_dispose_pool: None) -> AsyncIterator[AsyncClient]:
+    # Every test starts with full buckets (all test requests share one client IP).
+    async for key in ratelimit.client.scan_iter("rl:*"):
+        await ratelimit.client.delete(key)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
 
