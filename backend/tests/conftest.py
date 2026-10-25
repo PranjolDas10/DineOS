@@ -58,6 +58,7 @@ async def make_tenant(_dispose_pool: None) -> AsyncIterator[MakeTenant]:
     async with owner.begin() as conn:
         # Children before parents (FK order).
         for table in (
+            "jobs",
             "menu_items",
             "recipe_lines",
             "recipes",
