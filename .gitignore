@@ -165,3 +165,7 @@ htmlcov/
 # IDE
 .idea/
 .vscode/
+
+# Receipt eval runs (may contain real supplier data)
+evals/results/
+evals/data/
