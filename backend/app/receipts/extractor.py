@@ -10,6 +10,8 @@ import anthropic
 from anthropic.types import MessageParam
 from pydantic import BaseModel, Field
 
+from app.observability import LLM_TOKENS
+
 log = logging.getLogger(__name__)
 
 # Bump when the prompt or schema changes: cached results and eval runs are keyed by it.
@@ -82,6 +84,8 @@ async def extract(image: bytes, media_type: str, model: str) -> Result:
         output_format=Extraction,
     )
     usage = response.usage
+    LLM_TOKENS.labels(model, "input").inc(usage.input_tokens)
+    LLM_TOKENS.labels(model, "output").inc(usage.output_tokens)
     log.info(
         "receipt extraction model=%s input_tokens=%d output_tokens=%d stop=%s",
         model,

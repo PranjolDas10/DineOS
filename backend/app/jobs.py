@@ -9,6 +9,7 @@
 
 import json
 import logging
+import time
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import datetime
 from typing import Any
@@ -18,6 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import SessionLocal, set_tenant
+from app.observability import JOB_SECONDS, JOBS, request_id
 
 Handler = Callable[[AsyncSession, dict[str, Any]], Awaitable[None]]
 _handlers: dict[str, Handler] = {}
@@ -46,11 +48,17 @@ async def enqueue(
     no-op and returns None (e.g. "checklist_day:2026-10-20")."""
     job_id: UUID | None = await session.scalar(
         text(
-            "INSERT INTO jobs (kind, payload, run_after, dedupe_key)"
-            " VALUES (:k, CAST(:p AS jsonb), coalesce(:r, now()), :d)"
+            "INSERT INTO jobs (kind, payload, run_after, dedupe_key, request_id)"
+            " VALUES (:k, CAST(:p AS jsonb), coalesce(:r, now()), :d, :rid)"
             " ON CONFLICT (tenant_id, dedupe_key) DO NOTHING RETURNING id"
         ),
-        {"k": kind, "p": json.dumps(payload), "r": run_after, "d": dedupe_key},
+        {
+            "k": kind,
+            "p": json.dumps(payload),
+            "r": run_after,
+            "d": dedupe_key,
+            "rid": request_id.get(),
+        },
     )
     return job_id
 
@@ -71,12 +79,16 @@ async def run_once(kinds: Sequence[str] | None = None) -> UUID | None:
         if row is None:
             return None
         await set_tenant(session, row.tenant_id)
+        # Log lines from the handler carry the id of the request that enqueued the job.
+        token = request_id.set(row.request_id)
+        started = time.perf_counter()
         try:
             async with session.begin_nested():  # savepoint: a failure undoes only the handler
                 await _handlers[row.kind](session, json.loads(row.payload))
         except Exception as exc:  # any handler failure is retried, never lost
             attempts = row.attempts + 1
             final = attempts >= row.max_attempts
+            outcome = "failed" if final else "retry"
             log.exception("job %s (%s) failed, attempt %d", row.id, row.kind, attempts)
             await session.execute(
                 text(
@@ -93,6 +105,7 @@ async def run_once(kinds: Sequence[str] | None = None) -> UUID | None:
                 },
             )
         else:
+            outcome = "done"
             await session.execute(
                 text(
                     "UPDATE jobs SET status = 'done', attempts = attempts + 1, updated_at = now()"
@@ -100,5 +113,8 @@ async def run_once(kinds: Sequence[str] | None = None) -> UUID | None:
                 ),
                 {"id": row.id},
             )
+        JOBS.labels(row.kind, outcome).inc()
+        JOB_SECONDS.labels(row.kind).observe(time.perf_counter() - started)
+        request_id.reset(token)
         job_id: UUID = row.id
         return job_id

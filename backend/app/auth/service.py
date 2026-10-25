@@ -16,6 +16,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import ratelimit
 from app.api import Problem
 from app.auth.tokens import (
     ACCESS_TTL,
@@ -159,7 +160,8 @@ Claims = Annotated[dict[str, Any], Depends(current_claims)]
 
 async def tenant_session(claims: Claims) -> AsyncIterator[AsyncSession]:
     """One transaction per request, scoped to the token's tenant. Commit on success,
-    rollback on error."""
+    rollback on error. Rate-limited per tenant before any database work."""
+    await ratelimit.check(ratelimit.TENANT, claims["tid"])
     async with SessionLocal() as session, session.begin():
         await set_tenant(session, UUID(claims["tid"]))
         yield session

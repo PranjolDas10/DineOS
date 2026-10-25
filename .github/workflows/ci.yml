@@ -25,6 +25,10 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
     env:
       DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@localhost:5432/dineos
       MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@localhost:5432/dineos

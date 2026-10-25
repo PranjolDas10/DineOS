@@ -1,8 +1,9 @@
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, StringConstraints
 
+from app import ratelimit
 from app.auth import service
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
@@ -26,7 +27,11 @@ class TokenPair(BaseModel):
 
 
 @router.post("/login", response_model=TokenPair)
-async def login(body: LoginIn) -> Any:
+async def login(body: LoginIn, request: Request) -> Any:
+    # Both keys: one account can't be guessed at from many IPs, nor many accounts from one IP.
+    # ponytail: request.client is the direct peer; behind a proxy use its X-Forwarded-For.
+    await ratelimit.check(ratelimit.LOGIN_IP, request.client.host if request.client else "unknown")
+    await ratelimit.check(ratelimit.LOGIN_ACCOUNT, body.email.lower())
     return await service.login(body.email, body.password)
 
 
