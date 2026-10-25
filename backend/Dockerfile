@@ -5,6 +5,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev
 COPY app ./app
+COPY alembic.ini ./
+COPY migrations ./migrations
 
 # Runtime stage: no uv, no build tools, non-root
 FROM python:3.13-slim-bookworm
