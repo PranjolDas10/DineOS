@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints
 
-from app.inventory.models import BaseUnit
+from app.units import BaseUnit
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 Phone = Annotated[str, StringConstraints(strip_whitespace=True, max_length=50)]

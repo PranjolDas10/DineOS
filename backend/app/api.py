@@ -52,6 +52,10 @@ def if_match(if_match: Annotated[str | None, Header()] = None) -> int:
 
 # Postgres SQLSTATE -> HTTP. Constraints are the source of truth; the API just translates.
 _INTEGRITY_STATUS = {"23505": (409, "A record with this value already exists.")}
+# Specific constraints with a message the owner can act on. Checked before the SQLSTATE map.
+_CONSTRAINT_STATUS = {
+    "recipe_lines_no_cycle": (409, "A recipe can't use itself, directly or through sub-recipes."),
+}
 
 
 def install_problem_handlers(app: FastAPI) -> None:
@@ -69,8 +73,12 @@ def install_problem_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(IntegrityError)
     async def _integrity(_: Request, exc: IntegrityError) -> JSONResponse:
+        # SQLAlchemy's asyncpg wrapper chains the driver error, which carries the constraint name.
+        constraint = getattr(getattr(exc.orig, "__cause__", None), "constraint_name", None)
         sqlstate = getattr(exc.orig, "sqlstate", None)
-        status, detail = _INTEGRITY_STATUS.get(
-            sqlstate or "", (422, "Request violates a data constraint.")
+        status, detail = (
+            _CONSTRAINT_STATUS.get(constraint or "")
+            or _INTEGRITY_STATUS.get(sqlstate or "")
+            or (422, "Request violates a data constraint.")
         )
         return problem(status, detail)

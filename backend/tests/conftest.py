@@ -49,7 +49,15 @@ async def make_tenant() -> AsyncIterator[MakeTenant]:
 
     yield make
     async with owner.begin() as conn:
-        for table in ("ingredient_prices", "ingredients", "suppliers"):
+        # Children before parents (FK order).
+        for table in (
+            "menu_items",
+            "recipe_lines",
+            "recipes",
+            "ingredient_prices",
+            "ingredients",
+            "suppliers",
+        ):
             await conn.execute(
                 text(f"DELETE FROM {table} WHERE tenant_id = ANY(:ids)"), {"ids": created}
             )
