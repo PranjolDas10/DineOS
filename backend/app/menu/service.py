@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
@@ -96,3 +96,16 @@ async def food_cost_report(session: AsyncSession) -> list[dict[str, Any]]:
             }
         )
     return report
+
+
+async def menu_item_ids_by_name(session: AsyncSession, names: set[str]) -> dict[str, UUID]:
+    """Map sold item names (as the POS prints them) to menu items, case-insensitively.
+    Names without a match are simply absent: those sales stay unmapped until the owner
+    adds or renames the menu item."""
+    if not names:
+        return {}
+    lowered = {n.lower() for n in names}
+    rows = await session.execute(
+        select(MenuItem.name, MenuItem.id).where(func.lower(MenuItem.name).in_(lowered))
+    )
+    return {name.lower(): item_id for name, item_id in rows}

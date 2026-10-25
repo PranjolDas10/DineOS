@@ -47,10 +47,10 @@ services:
     volumes:
       - s3data:/data
 
-  # One-shot: creates the receipts bucket (no-op if it exists), retrying until storage is up.
+  # One-shot: creates the uploads bucket (no-op if it exists), retrying until storage is up.
   storage-init:
     build: ../backend
-    command: ["python", "-m", "app.receipts.storage"]
+    command: ["python", "-m", "app.storage"]
     environment: *backend-env
     depends_on:
       - seaweedfs

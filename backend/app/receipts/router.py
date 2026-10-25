@@ -8,10 +8,10 @@ from pydantic import BaseModel, ConfigDict, StringConstraints, computed_field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud
+from app import crud, storage
 from app.api import Limit, Page, etag, if_match
 from app.auth.service import Claims, TenantSession
-from app.receipts import review, service, storage
+from app.receipts import review, service
 from app.receipts.models import Receipt, ReceiptLine
 
 router = APIRouter(prefix="/v1/receipts", tags=["receipts"])

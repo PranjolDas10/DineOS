@@ -17,6 +17,7 @@ from app.db import engine, get_session
 from app.inventory.router import router as inventory_router
 from app.menu.router import router as menu_router
 from app.observability import RequestContext, setup_logging, start_metrics_server
+from app.orders.router import router as orders_router
 from app.receipts.router import router as receipts_router
 from app.scheduling.router import router as scheduling_router
 
@@ -39,6 +40,7 @@ app.include_router(receipts_router)
 app.include_router(scheduling_router)
 app.include_router(checklists_router)
 app.include_router(alerts_router)
+app.include_router(orders_router)
 
 
 @app.get("/healthz")

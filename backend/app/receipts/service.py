@@ -11,10 +11,10 @@ from uuid import UUID
 from sqlalchemy import delete, insert, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, jobs
+from app import crud, jobs, storage
 from app.api import Problem
 from app.config import settings
-from app.receipts import extractor, storage
+from app.receipts import extractor
 from app.receipts.models import Receipt, ReceiptLine
 
 MEDIA_TYPES = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}

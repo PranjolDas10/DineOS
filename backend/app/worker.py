@@ -9,6 +9,7 @@ from app import jobs
 from app.checklists import service as _checklists  # noqa: F401
 from app.config import settings
 from app.observability import setup_logging, start_metrics_server
+from app.orders import service as _orders  # noqa: F401
 from app.receipts import service as _receipts  # noqa: F401
 
 POLL_SECONDS = 1.0

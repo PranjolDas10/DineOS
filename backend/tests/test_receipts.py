@@ -8,8 +8,9 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import text
 
+from app import storage
 from app.db import SessionLocal, set_tenant
-from app.receipts import extractor, service, storage
+from app.receipts import extractor, service
 from app.receipts.extractor import ExtractedLine, Extraction, Result, Unreadable
 from tests.conftest import MakeTenant, auth_headers
 
@@ -89,7 +90,7 @@ async def test_upload_url_is_presigned_under_tenant_prefix(
     ).json()
     assert body["object_key"].startswith(f"{tenant_id}/")
     assert body["object_key"].endswith(".jpg")
-    assert f"/receipts/{body['object_key']}" in body["upload_url"]
+    assert f"/uploads/{body['object_key']}" in body["upload_url"]
     assert "X-Amz-Signature=" in body["upload_url"]
 
 
