@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartNoAxesColumn, CookingPot, ReceiptText } from "lucide-react";
+import { CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText } from "lucide-react";
 
 const LINKS = [
   { href: "/", label: "Profit", icon: ChartNoAxesColumn },
   { href: "/receipts", label: "Receipts", icon: ReceiptText },
   { href: "/menu", label: "Menu costs", icon: CookingPot },
+  { href: "/schedule", label: "Schedule", icon: CalendarDays },
 ];
 
 export function Nav() {

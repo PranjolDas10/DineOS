@@ -6,7 +6,15 @@ export default defineConfig({
   fullyParallel: false, // the review test changes shared demo data
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    // Signs in once: the API rate-limits logins per account (5 at once, then 1 a minute).
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"], storageState: "test-results/.auth.json" },
+      dependencies: ["setup"],
+    },
+  ],
   webServer: {
     command: "npm run start",
     url: "http://localhost:3000/login",
