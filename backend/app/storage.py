@@ -1,5 +1,6 @@
-"""Receipt photos in S3 (SeaweedFS locally). The API never proxies image bytes: phones upload
-straight to storage with a presigned PUT URL, and the worker reads the object back."""
+"""User uploads (receipt photos, sales exports) in S3 (SeaweedFS locally). The API never
+proxies file bytes: clients upload straight to storage with a presigned PUT URL, and the
+worker reads the object back. Keys always start with "<tenant_id>/"."""
 
 import time
 from typing import Any
@@ -10,7 +11,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 from app.config import settings
 
-BUCKET = "receipts"
+BUCKET = "uploads"
 UPLOAD_TTL_SECONDS = 600
 
 
@@ -43,7 +44,7 @@ def get_bytes(key: str) -> bytes:
 
 
 def ensure_bucket() -> None:
-    """Idempotent setup, run once per deploy: python -m app.receipts.storage.
+    """Idempotent setup, run once per deploy: python -m app.storage.
     Retries while the storage server is still starting."""
     client = _client(settings.s3_endpoint_url)
     for _ in range(60):

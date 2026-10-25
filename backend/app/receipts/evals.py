@@ -24,8 +24,9 @@ from uuid import UUID
 
 from sqlalchemy import text
 
+from app import storage
 from app.db import SessionLocal, set_tenant
-from app.receipts import extractor, service, storage
+from app.receipts import extractor, service
 
 # USD per million tokens (input, output), from Anthropic's price list on 2026-10-25.
 # Update when prices change; cost numbers in old reports keep the prices they used.

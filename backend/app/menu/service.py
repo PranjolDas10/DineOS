@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
@@ -96,3 +96,35 @@ async def food_cost_report(session: AsyncSession) -> list[dict[str, Any]]:
             }
         )
     return report
+
+
+async def menu_item_ids_by_name(session: AsyncSession, names: set[str]) -> dict[str, UUID]:
+    """Map sold item names (as the POS prints them) to menu items, case-insensitively.
+    Names without a match are simply absent: those sales stay unmapped until the owner
+    adds or renames the menu item."""
+    if not names:
+        return {}
+    lowered = {n.lower() for n in names}
+    rows = await session.execute(
+        select(MenuItem.name, MenuItem.id).where(func.lower(MenuItem.name).in_(lowered))
+    )
+    return {name.lower(): item_id for name, item_id in rows}
+
+
+async def portion_costs(session: AsyncSession) -> dict[UUID, Decimal | None]:
+    """Exact food cost (cents) of one sale of each menu item, at today's prices; None if
+    unknown. The ledger snapshots this when it posts a sale, so later price changes never
+    rewrite the cost of past sales."""
+    costs, _, _ = await _cost_all(session)
+    result: dict[UUID, Decimal | None] = {}
+    for item in await session.scalars(select(MenuItem)):
+        recipe = costs.get(item.recipe_id) if item.recipe_id else None
+        per_unit = recipe.per_unit if recipe else None
+        result[item.id] = None if per_unit is None else item.portion_qty * per_unit
+    return result
+
+
+async def menu_item_names(session: AsyncSession) -> dict[UUID, str]:
+    return {
+        item_id: name for item_id, name in await session.execute(select(MenuItem.id, MenuItem.name))
+    }
