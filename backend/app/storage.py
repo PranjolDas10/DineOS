@@ -35,6 +35,21 @@ def presign_put(key: str, content_type: str) -> str:
     return url
 
 
+def presign_get(key: str) -> str:
+    """Short-lived read URL for showing a photo in the browser, without proxying its bytes."""
+    url: str = _client(settings.s3_public_endpoint_url).generate_presigned_url(
+        "get_object", Params={"Bucket": BUCKET, "Key": key}, ExpiresIn=UPLOAD_TTL_SECONDS
+    )
+    return url
+
+
+def put_bytes(key: str, data: bytes, content_type: str) -> None:
+    """Blocking. Server-side writes only (the demo seed); clients upload with presign_put."""
+    _client(settings.s3_endpoint_url).put_object(
+        Bucket=BUCKET, Key=key, Body=data, ContentType=content_type
+    )
+
+
 def get_bytes(key: str) -> bytes:
     """Blocking (boto3 is sync): call through asyncio.to_thread."""
     body: bytes = (

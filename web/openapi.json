@@ -5011,6 +5011,10 @@
             "format": "date-time",
             "title": "Updated At"
           },
+          "photo_url": {
+            "type": "string",
+            "title": "Photo Url"
+          },
           "lines": {
             "items": {
               "$ref": "#/components/schemas/ReceiptLineOut"
@@ -5034,6 +5038,7 @@
           "version",
           "created_at",
           "updated_at",
+          "photo_url",
           "lines"
         ],
         "title": "ReceiptDetail"

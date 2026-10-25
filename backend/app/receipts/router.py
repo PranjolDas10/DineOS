@@ -69,6 +69,7 @@ class ReceiptLineOut(BaseModel):
 
 
 class ReceiptDetail(ReceiptOut):
+    photo_url: str  # presigned, expires like an upload URL; fetch the detail again for a new one
     lines: list[ReceiptLineOut]
 
 
@@ -126,4 +127,8 @@ async def confirm_receipt(
 async def _detail(session: AsyncSession, receipt: Receipt) -> dict[str, Any]:
     stmt = select(ReceiptLine).where(ReceiptLine.receipt_id == receipt.id)
     lines = (await session.scalars(stmt.order_by(ReceiptLine.position))).all()
-    return {**ReceiptOut.model_validate(receipt).model_dump(), "lines": lines}
+    return {
+        **ReceiptOut.model_validate(receipt).model_dump(),
+        "photo_url": storage.presign_get(receipt.object_key),
+        "lines": lines,
+    }

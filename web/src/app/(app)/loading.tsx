@@ -1,7 +1,8 @@
 // Skeleton in the page's shape, so nothing jumps when the numbers arrive.
 export default function Loading() {
   return (
-    <div aria-busy="true" aria-label="Loading" className="mx-auto grid max-w-6xl animate-pulse gap-8">
+    <div role="status" className="mx-auto grid max-w-6xl animate-pulse gap-8">
+      <span className="sr-only">Loading</span>
       <div className="h-6 w-40 rounded-sm bg-surface-sunken" />
       <div className="h-12 w-3/4 rounded-sm bg-surface-sunken" />
       <div className="h-24 rounded-lg bg-surface-sunken" />

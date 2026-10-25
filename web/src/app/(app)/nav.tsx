@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartNoAxesColumn, CookingPot } from "lucide-react";
+import { ChartNoAxesColumn, CookingPot, ReceiptText } from "lucide-react";
 
 const LINKS = [
   { href: "/", label: "Profit", icon: ChartNoAxesColumn },
+  { href: "/receipts", label: "Receipts", icon: ReceiptText },
   { href: "/menu", label: "Menu costs", icon: CookingPot },
 ];
 
@@ -14,7 +15,7 @@ export function Nav() {
   return (
     <ul className="flex gap-1 lg:grid">
       {LINKS.map(({ href, label, icon: Icon }) => {
-        const current = pathname === href;
+        const current = href === "/" ? pathname === "/" : pathname.startsWith(href);
         return (
           <li key={href}>
             <Link
