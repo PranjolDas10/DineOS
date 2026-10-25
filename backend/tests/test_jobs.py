@@ -30,7 +30,9 @@ async def in_tenant(tenant_id: UUID, sql: str, **params: Any) -> Any:
 async def enqueue(tenant_id: UUID, k: str, payload: dict[str, Any]) -> UUID:
     async with SessionLocal() as session, session.begin():
         await set_tenant(session, tenant_id)
-        return await jobs.enqueue(session, k, payload)
+        job_id = await jobs.enqueue(session, k, payload)
+        assert job_id is not None
+        return job_id
 
 
 async def test_rolled_back_transaction_enqueues_nothing(make_tenant: MakeTenant) -> None:

@@ -5,7 +5,10 @@ import asyncio
 import logging
 
 from app import jobs
-from app.receipts import service as _receipts  # noqa: F401  (registers parse_receipt)
+
+# Importing a module registers its @jobs.job handlers.
+from app.checklists import service as _checklists  # noqa: F401
+from app.receipts import service as _receipts  # noqa: F401
 
 POLL_SECONDS = 1.0
 
