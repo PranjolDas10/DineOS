@@ -54,7 +54,7 @@ root_package = "app"
 name = "Modules talk only through each other's service.py"
 type = "independence"
 # Add each new module here.
-modules = ["app.auth", "app.inventory", "app.menu", "app.receipts"]
+modules = ["app.auth", "app.inventory", "app.menu", "app.receipts", "app.scheduling"]
 ignore_imports = ["app.** -> app.*.service"]
 
 [tool.pytest.ini_options]

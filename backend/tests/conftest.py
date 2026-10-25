@@ -59,6 +59,8 @@ async def make_tenant(_dispose_pool: None) -> AsyncIterator[MakeTenant]:
         # Children before parents (FK order).
         for table in (
             "jobs",
+            "shifts",
+            "staff",
             "extraction_cache",
             "receipt_labels",
             "receipt_lines",
