@@ -60,6 +60,7 @@ _INTEGRITY_STATUS = {"23505": (409, "A record with this value already exists.")}
 # Specific constraints with a message the owner can act on. Checked before the SQLSTATE map.
 _CONSTRAINT_STATUS = {
     "recipe_lines_no_cycle": (409, "A recipe can't use itself, directly or through sub-recipes."),
+    "shifts_no_overlap": (409, "This person already has a shift that overlaps this time."),
 }
 
 

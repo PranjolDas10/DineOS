@@ -1,10 +1,10 @@
 """Food cost of recipes and menu items. Pure functions: no DB, no I/O.
 
-All amounts are exact Decimal cents. Round only when presenting (see `cents`)."""
+All amounts are exact Decimal cents. Round only when presenting (see app.money.cents)."""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from decimal import ROUND_HALF_EVEN, Decimal
+from decimal import Decimal
 from uuid import UUID
 
 
@@ -73,14 +73,3 @@ def line_unit_cost(
         return unit_costs.get(line.ingredient_id)
     assert line.sub_recipe_id is not None
     return costs[line.sub_recipe_id].per_unit
-
-
-def cents(amount: Decimal | None) -> int | None:
-    """Round once, at the presentation boundary. Half-even avoids an upward bias over many sums."""
-    return None if amount is None else int(amount.quantize(Decimal(1), ROUND_HALF_EVEN))
-
-
-def percent(part: Decimal | None, whole: int) -> Decimal | None:
-    if part is None or whole == 0:
-        return None
-    return (part * 100 / whole).quantize(Decimal("0.1"), ROUND_HALF_EVEN)

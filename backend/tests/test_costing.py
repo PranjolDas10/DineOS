@@ -8,7 +8,8 @@ from uuid import UUID
 import pytest
 from httpx import AsyncClient
 
-from app.menu.costing import Line, cents, cost_recipes, percent
+from app.menu.costing import Line, cost_recipes
+from app.money import cents, percent
 from tests import mock_menu
 from tests.conftest import MakeTenant, auth_headers
 

@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.6",
     "pyjwt>=2.15.1",
     "sqlalchemy[asyncio]>=2.0.36",
+    "tzdata>=2026.5",
     "uvicorn>=0.32",
 ]
 
@@ -54,7 +55,15 @@ root_package = "app"
 name = "Modules talk only through each other's service.py"
 type = "independence"
 # Add each new module here.
-modules = ["app.auth", "app.inventory", "app.menu", "app.receipts"]
+modules = [
+    "app.alerts",
+    "app.auth",
+    "app.checklists",
+    "app.inventory",
+    "app.menu",
+    "app.receipts",
+    "app.scheduling",
+]
 ignore_imports = ["app.** -> app.*.service"]
 
 [tool.pytest.ini_options]

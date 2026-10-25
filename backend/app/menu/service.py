@@ -10,8 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 from app.api import Problem
 from app.inventory import service as inventory
-from app.menu.costing import Line, RecipeCost, cents, cost_recipes, line_unit_cost, percent
+from app.menu.costing import Line, RecipeCost, cost_recipes, line_unit_cost
 from app.menu.models import MenuItem, Recipe, RecipeLine
+from app.money import cents, percent
 
 
 async def get_lines(session: AsyncSession, recipe_id: UUID) -> tuple[Recipe, Sequence[RecipeLine]]:

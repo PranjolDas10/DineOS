@@ -10,6 +10,7 @@
 import json
 import logging
 from collections.abc import Awaitable, Callable, Sequence
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -33,12 +34,24 @@ def job(kind: str) -> Callable[[Handler], Handler]:
     return register
 
 
-async def enqueue(session: AsyncSession, kind: str, payload: dict[str, Any]) -> UUID:
+async def enqueue(
+    session: AsyncSession,
+    kind: str,
+    payload: dict[str, Any],
+    run_after: datetime | None = None,
+    dedupe_key: str | None = None,
+) -> UUID | None:
+    """Insert a job in the caller's transaction. run_after delays it (scheduled work).
+    dedupe_key makes it at-most-once per tenant: a second enqueue with the same key is a
+    no-op and returns None (e.g. "checklist_day:2026-10-20")."""
     job_id: UUID | None = await session.scalar(
-        text("INSERT INTO jobs (kind, payload) VALUES (:k, CAST(:p AS jsonb)) RETURNING id"),
-        {"k": kind, "p": json.dumps(payload)},
+        text(
+            "INSERT INTO jobs (kind, payload, run_after, dedupe_key)"
+            " VALUES (:k, CAST(:p AS jsonb), coalesce(:r, now()), :d)"
+            " ON CONFLICT (tenant_id, dedupe_key) DO NOTHING RETURNING id"
+        ),
+        {"k": kind, "p": json.dumps(payload), "r": run_after, "d": dedupe_key},
     )
-    assert job_id is not None
     return job_id
 
 

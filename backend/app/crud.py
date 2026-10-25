@@ -3,7 +3,7 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, func, select, update
+from sqlalchemy import ColumnElement, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,3 +68,13 @@ async def update_versioned[M: Versioned](
         await get_or_404(session, model, id)
         raise Problem(412, "This record changed since you read it. Refetch and retry.")
     return row
+
+
+async def delete_versioned[M: Versioned](
+    session: AsyncSession, model: type[M], id: UUID, version: int
+) -> None:
+    """Delete only the version the client last saw (same If-Match rule as updates)."""
+    stmt = delete(model).where(model.id == id, model.version == version).returning(model.id)
+    if (await session.execute(stmt)).first() is None:
+        await get_or_404(session, model, id)
+        raise Problem(412, "This record changed since you read it. Refetch and retry.")
