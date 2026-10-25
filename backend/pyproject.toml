@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.30",
     "boto3>=1.43.118",
     "fastapi>=0.115",
+    "prometheus-client>=0.26.0",
     "pydantic-settings>=2.6",
     "pyjwt>=2.15.1",
     "redis>=8.1.0",

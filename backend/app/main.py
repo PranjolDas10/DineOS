@@ -12,21 +12,26 @@ from app.alerts.router import router as alerts_router
 from app.api import install_problem_handlers
 from app.auth.router import router as auth_router
 from app.checklists.router import router as checklists_router
+from app.config import settings
 from app.db import engine, get_session
 from app.inventory.router import router as inventory_router
 from app.menu.router import router as menu_router
+from app.observability import RequestContext, setup_logging, start_metrics_server
 from app.receipts.router import router as receipts_router
 from app.scheduling.router import router as scheduling_router
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    setup_logging()
+    start_metrics_server(settings.metrics_port)  # internal port, never the public API
     yield
     await engine.dispose()
 
 
 app = FastAPI(title="DineOS", lifespan=lifespan)
 install_problem_handlers(app)
+app.add_middleware(RequestContext)
 app.include_router(auth_router)
 app.include_router(inventory_router)
 app.include_router(menu_router)
