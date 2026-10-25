@@ -19,21 +19,22 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 async def _dispose_pool() -> AsyncIterator[None]:
-    """Each test runs on a new event loop; pooled asyncpg connections are bound to the old one."""
+    """Each test runs on a new event loop; pooled asyncpg connections are bound to the old one.
+    Requested by the DB fixtures below (not autouse, so pure sync tests need no event loop)."""
     yield
     await engine.dispose()
 
 
 @pytest.fixture
-async def client() -> AsyncIterator[AsyncClient]:
+async def client(_dispose_pool: None) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
 
 
 @pytest.fixture
-async def make_tenant() -> AsyncIterator[MakeTenant]:
+async def make_tenant(_dispose_pool: None) -> AsyncIterator[MakeTenant]:
     """Create tenants as the owner role (the app role can't); delete them and their rows after."""
     owner = create_async_engine(MigrationSettings().migration_database_url)
     created: list[UUID] = []

@@ -79,3 +79,37 @@ class MenuItemOut(BaseModel):
     version: int
     created_at: datetime
     updated_at: datetime
+
+
+class LineCostOut(BaseModel):
+    ingredient_id: UUID | None
+    sub_recipe_id: UUID | None
+    qty: Decimal
+    cost_cents: int | None
+
+
+class RecipeCostOut(BaseModel):
+    """Null cost means unknown: see unpriced_ingredient_ids / empty_recipe_ids for why."""
+
+    recipe_id: UUID
+    total_cents: int | None
+    per_unit_cents: Decimal | None
+    unpriced_ingredient_ids: list[UUID]
+    empty_recipe_ids: list[UUID]
+    lines: list[LineCostOut]
+
+
+class FoodCostItem(BaseModel):
+    menu_item_id: UUID
+    name: str
+    recipe_id: UUID | None
+    price_cents: int
+    cost_cents: int | None
+    margin_cents: int | None
+    food_cost_pct: Decimal | None
+    unpriced_ingredient_ids: list[UUID]
+    empty_recipe_ids: list[UUID]
+
+
+class FoodCostReport(BaseModel):
+    items: list[FoodCostItem]
