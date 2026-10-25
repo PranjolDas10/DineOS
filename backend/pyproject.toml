@@ -4,8 +4,10 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.1",
+    "anthropic>=2.3.0",
     "argon2-cffi>=25.1.0",
     "asyncpg>=0.30",
+    "boto3>=1.43.118",
     "fastapi>=0.115",
     "pydantic-settings>=2.6",
     "pyjwt>=2.15.1",
@@ -40,6 +42,11 @@ strict = true
 files = ["app", "tests", "migrations"]
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+# boto3 ships no type hints; its calls are wrapped in app/receipts/storage.py.
+module = ["boto3", "boto3.*", "botocore", "botocore.*"]
+ignore_missing_imports = true
+
 [tool.importlinter]
 root_package = "app"
 
@@ -47,7 +54,7 @@ root_package = "app"
 name = "Modules talk only through each other's service.py"
 type = "independence"
 # Add each new module here.
-modules = ["app.auth", "app.inventory", "app.menu"]
+modules = ["app.auth", "app.inventory", "app.menu", "app.receipts"]
 ignore_imports = ["app.** -> app.*.service"]
 
 [tool.pytest.ini_options]

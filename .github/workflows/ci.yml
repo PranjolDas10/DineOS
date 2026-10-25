@@ -29,6 +29,10 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@localhost:5432/dineos
       MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@localhost:5432/dineos
       JWT_SECRET: ci-only-insecure-jwt-secret-0123456789abcdef
+      # Only used to sign presigned URLs locally; CI never talks to S3 or the Claude API.
+      AWS_ACCESS_KEY_ID: ci-dummy
+      AWS_SECRET_ACCESS_KEY: ci-dummy
+      AWS_DEFAULT_REGION: us-east-1
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

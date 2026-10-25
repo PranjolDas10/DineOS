@@ -13,6 +13,7 @@ from app.auth.router import router as auth_router
 from app.db import engine, get_session
 from app.inventory.router import router as inventory_router
 from app.menu.router import router as menu_router
+from app.receipts.router import router as receipts_router
 
 
 @asynccontextmanager
@@ -26,6 +27,7 @@ install_problem_handlers(app)
 app.include_router(auth_router)
 app.include_router(inventory_router)
 app.include_router(menu_router)
+app.include_router(receipts_router)
 
 
 @app.get("/healthz")
