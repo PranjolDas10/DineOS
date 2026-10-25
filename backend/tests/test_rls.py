@@ -42,6 +42,7 @@ async def test_reads_only_own_tenant(tenants: tuple[UUID, UUID, UUID]) -> None:
 async def test_no_tenant_set_sees_nothing(tenants: tuple[UUID, UUID, UUID]) -> None:
     assert await as_app(None, "SELECT count(*) FROM suppliers") == [0]
     assert await as_app(None, "SELECT count(*) FROM tenants") == [0]
+    assert await as_app(None, "SELECT count(*) FROM users") == [0]
 
 
 async def test_cannot_write_into_other_tenant(tenants: tuple[UUID, UUID, UUID]) -> None:

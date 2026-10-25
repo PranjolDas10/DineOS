@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Response
 
 from app import crud
 from app.api import Limit, Page, etag, if_match
-from app.db import TenantSession
+from app.auth.service import TenantSession
 from app.inventory.models import Ingredient, IngredientPrice, Supplier
 from app.inventory.schemas import (
     IngredientCreate,

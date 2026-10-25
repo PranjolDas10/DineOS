@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +8,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str
+    # HS256 signing key for access tokens. RFC 7518 3.2: at least 256 bits.
+    jwt_secret: str = Field(min_length=32)
 
 
 class MigrationSettings(BaseSettings):

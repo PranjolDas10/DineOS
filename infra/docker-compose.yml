@@ -26,6 +26,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
       MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@postgres:5432/dineos
+      # Dev-only default; any real deployment sets its own.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-jwt-secret-change-me-0123456789}
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +36,7 @@ services:
     build: ../backend
     environment:
       DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@postgres:5432/dineos
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-jwt-secret-change-me-0123456789}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

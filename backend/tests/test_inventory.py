@@ -6,14 +6,14 @@ from uuid import UUID
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import MakeTenant
+from tests.conftest import MakeTenant, auth_headers
 
 pytestmark = pytest.mark.anyio
 
 
 @pytest.fixture
 async def tenant(make_tenant: MakeTenant) -> dict[str, str]:
-    return {"X-Tenant-Id": str(await make_tenant())}
+    return auth_headers(await make_tenant())
 
 
 async def test_update_requires_current_etag(client: AsyncClient, tenant: dict[str, str]) -> None:
@@ -87,8 +87,8 @@ async def test_prices(client: AsyncClient, tenant: dict[str, str]) -> None:
 
 
 async def test_other_tenant_gets_404(client: AsyncClient, make_tenant: MakeTenant) -> None:
-    a: dict[str, str] = {"X-Tenant-Id": str(await make_tenant())}
-    b: dict[str, str] = {"X-Tenant-Id": str(await make_tenant())}
+    a: dict[str, str] = auth_headers(await make_tenant())
+    b: dict[str, str] = auth_headers(await make_tenant())
     supplier_id: UUID = (await client.post("/v1/suppliers", json={"name": "S"}, headers=a)).json()[
         "id"
     ]

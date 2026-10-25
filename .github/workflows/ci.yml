@@ -28,6 +28,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://dineos_app:dineos_app@localhost:5432/dineos
       MIGRATION_DATABASE_URL: postgresql+asyncpg://dineos:dineos@localhost:5432/dineos
+      JWT_SECRET: ci-only-insecure-jwt-secret-0123456789abcdef
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
