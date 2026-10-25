@@ -155,6 +155,11 @@ async def project(
                 for n, i in enumerate(items)
             ],
         )
+    # Outbox: posting to the ledger is enqueued in the same transaction as the change.
+    # One posting job per order version (dedupe), so replays and retries never double-post.
+    await jobs.enqueue(
+        session, "post_order", {"order_id": str(order_id)}, dedupe_key=f"post_order:{event_id}"
+    )
     return "new" if row["new"] else "updated"
 
 
@@ -173,3 +178,31 @@ async def replay_orders(session: AsyncSession, payload: dict[str, Any]) -> None:
     menu_ids = await menu.menu_item_ids_by_name(session, names)
     for event_id, source, event_payload in latest:
         await project(session, source, event_payload, event_id, menu_ids, force=True)
+
+
+async def order_for_posting(session: AsyncSession, order_id: UUID) -> dict[str, Any] | None:
+    """Public read for the ledger: the order's current version with its items."""
+    order = await session.get(Order, order_id)
+    if order is None:
+        return None
+    items = await session.scalars(
+        select(OrderItem).where(OrderItem.order_id == order_id).order_by(OrderItem.position)
+    )
+    return {
+        "id": order.id,
+        "event_id": order.event_id,
+        "channel": order.channel,
+        "placed_at": order.placed_at,
+        "subtotal_cents": order.subtotal_cents,
+        "tax_cents": order.tax_cents,
+        "tip_cents": order.tip_cents,
+        "total_cents": order.total_cents,
+        "items": [
+            {
+                "menu_item_id": i.menu_item_id,
+                "quantity": i.quantity,
+                "line_total_cents": i.line_total_cents,
+            }
+            for i in items
+        ],
+    }

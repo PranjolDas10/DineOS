@@ -62,6 +62,7 @@ modules = [
     "app.auth",
     "app.checklists",
     "app.inventory",
+    "app.ledger",
     "app.menu",
     "app.orders",
     "app.receipts",

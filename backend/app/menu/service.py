@@ -109,3 +109,22 @@ async def menu_item_ids_by_name(session: AsyncSession, names: set[str]) -> dict[
         select(MenuItem.name, MenuItem.id).where(func.lower(MenuItem.name).in_(lowered))
     )
     return {name.lower(): item_id for name, item_id in rows}
+
+
+async def portion_costs(session: AsyncSession) -> dict[UUID, Decimal | None]:
+    """Exact food cost (cents) of one sale of each menu item, at today's prices; None if
+    unknown. The ledger snapshots this when it posts a sale, so later price changes never
+    rewrite the cost of past sales."""
+    costs, _, _ = await _cost_all(session)
+    result: dict[UUID, Decimal | None] = {}
+    for item in await session.scalars(select(MenuItem)):
+        recipe = costs.get(item.recipe_id) if item.recipe_id else None
+        per_unit = recipe.per_unit if recipe else None
+        result[item.id] = None if per_unit is None else item.portion_qty * per_unit
+    return result
+
+
+async def menu_item_names(session: AsyncSession) -> dict[UUID, str]:
+    return {
+        item_id: name for item_id, name in await session.execute(select(MenuItem.id, MenuItem.name))
+    }
