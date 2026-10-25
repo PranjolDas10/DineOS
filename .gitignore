@@ -147,3 +147,21 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env (keep the example)
+.env
+!.env.example
+
+# IDE
+.idea/
+.vscode/
