@@ -1,18 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import StrEnum
 from uuid import UUID
 
-from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Entity, Versioned
-
-
-class BaseUnit(StrEnum):
-    g = "g"
-    ml = "ml"
-    each = "each"
+from app.units import BaseUnit, base_unit_type
 
 
 class Supplier(Versioned):
@@ -24,8 +17,7 @@ class Supplier(Versioned):
 class Ingredient(Versioned):
     __tablename__ = "ingredients"
     name: Mapped[str]
-    # Named PG enum so binds are cast to base_unit (a plain varchar bind would be rejected).
-    base_unit: Mapped[BaseUnit] = mapped_column(ENUM(BaseUnit, name="base_unit", create_type=False))
+    base_unit: Mapped[BaseUnit] = mapped_column(base_unit_type)
     default_supplier_id: Mapped[UUID | None]
 
 

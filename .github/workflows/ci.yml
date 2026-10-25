@@ -37,6 +37,7 @@ jobs:
       - run: uv run ruff check
       - run: uv run ruff format --check
       - run: uv run mypy
+      - run: uv run lint-imports
       # Same role script Compose runs on a fresh volume.
       - run: psql postgresql://dineos:dineos@localhost:5432/dineos -f ../infra/postgres/init/01-app-role.sql
       - run: uv run alembic upgrade head
