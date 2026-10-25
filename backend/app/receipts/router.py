@@ -3,14 +3,15 @@ from decimal import Decimal
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Response
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from fastapi import APIRouter, Depends, Response
+from pydantic import BaseModel, ConfigDict, StringConstraints, computed_field
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
-from app.api import Limit, Page, etag
+from app.api import Limit, Page, etag, if_match
 from app.auth.service import Claims, TenantSession
-from app.receipts import service, storage
+from app.receipts import review, service, storage
 from app.receipts.models import Receipt, ReceiptLine
 
 router = APIRouter(prefix="/v1/receipts", tags=["receipts"])
@@ -60,6 +61,12 @@ class ReceiptLineOut(BaseModel):
     confidence: Decimal
     ingredient_id: UUID | None
 
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def needs_review(self) -> bool:
+        """Low confidence: the UI asks for an explicit check instead of one-tap accept."""
+        return self.confidence < review.CONFIDENCE_THRESHOLD
+
 
 class ReceiptDetail(ReceiptOut):
     lines: list[ReceiptLineOut]
@@ -98,7 +105,25 @@ async def list_receipts(
 @router.get("/{receipt_id}", response_model=ReceiptDetail)
 async def get_receipt(receipt_id: UUID, session: TenantSession, response: Response) -> Any:
     receipt = await crud.get_or_404(session, Receipt, receipt_id)
-    stmt = select(ReceiptLine).where(ReceiptLine.receipt_id == receipt_id)
-    lines = (await session.scalars(stmt.order_by(ReceiptLine.position))).all()
     response.headers["ETag"] = etag(receipt.version)
+    return await _detail(session, receipt)
+
+
+@router.post("/{receipt_id}/confirm", response_model=ReceiptDetail)
+async def confirm_receipt(
+    receipt_id: UUID,
+    body: review.ConfirmIn,
+    version: Annotated[int, Depends(if_match)],
+    session: TenantSession,
+    response: Response,
+) -> Any:
+    """Owner-reviewed values become prices and an eval label. Every line must be decided."""
+    receipt = await review.confirm(session, receipt_id, version, body)
+    response.headers["ETag"] = etag(receipt.version)
+    return await _detail(session, receipt)
+
+
+async def _detail(session: AsyncSession, receipt: Receipt) -> dict[str, Any]:
+    stmt = select(ReceiptLine).where(ReceiptLine.receipt_id == receipt.id)
+    lines = (await session.scalars(stmt.order_by(ReceiptLine.position))).all()
     return {**ReceiptOut.model_validate(receipt).model_dump(), "lines": lines}

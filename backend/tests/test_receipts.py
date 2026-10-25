@@ -166,3 +166,124 @@ async def test_unreadable_receipt_fails_without_retry(
     await run_parse(tenant_id, receipt["id"])  # returns normally: the job is done, not retried
     got = (await client.get(f"/v1/receipts/{receipt['id']}", headers=headers)).json()
     assert (got["status"], got["failure_reason"]) == ("failed", "model stopped with max_tokens")
+
+
+async def parsed(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]]
+) -> tuple[dict[str, Any], str]:
+    """A receipt that went through the (faked) parse job. Returns (detail, etag)."""
+    tenant_id, headers = tenant
+    receipt = await register(client, headers, {})
+    await run_parse(tenant_id, receipt["id"])
+    resp = await client.get(f"/v1/receipts/{receipt['id']}", headers=headers)
+    return resp.json(), resp.headers["etag"]
+
+
+def decisions(detail: dict[str, Any], onion_id: str | None) -> list[dict[str, Any]]:
+    onion, ghee = detail["lines"]
+    return [
+        {
+            "line_id": onion["id"],
+            "ingredient_id": onion_id,
+            "description": "ONION YELLOW 50LB",
+            "quantity": "1",
+            "unit": "sack",
+            "line_total_cents": 3499,
+            "base_qty": "22680",  # 50 lb in grams, converted by the UI
+        },
+        {  # skipped: not an ingredient we cost (and the owner fixes the smudged text)
+            "line_id": ghee["id"],
+            "ingredient_id": None,
+            "description": "GHEE 1.6KG",
+            "quantity": "3",
+            "unit": "jar",
+            "line_total_cents": 4749,
+        },
+    ]
+
+
+async def test_confirm_writes_prices_and_eval_label(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]], fake_claude: list[str]
+) -> None:
+    tenant_id, headers = tenant
+    onion = (
+        await client.post(
+            "/v1/ingredients", json={"name": "Onion", "base_unit": "g"}, headers=headers
+        )
+    ).json()["id"]
+    supplier = (
+        await client.post("/v1/suppliers", json={"name": "Restaurant Depot"}, headers=headers)
+    ).json()["id"]
+    detail, tag = await parsed(client, tenant)
+    assert [line["needs_review"] for line in detail["lines"]] == [False, True]
+
+    body = {
+        "supplier_id": supplier,
+        "supplier_name": "Restaurant Depot",
+        "receipt_date": "2026-10-20",
+        "total_cents": 8248,
+        "lines": decisions(detail, onion),
+    }
+    url = f"/v1/receipts/{detail['id']}/confirm"
+    resp = await client.post(url, json=body, headers={**headers, "If-Match": tag})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "confirmed"
+
+    # The mapped line became a price observation dated by the receipt.
+    price = (await client.get(f"/v1/ingredients/{onion}/prices", headers=headers)).json()["items"][
+        0
+    ]
+    assert (price["pack_qty"], price["pack_price_cents"], price["supplier_id"]) == (
+        "22680",
+        3499,
+        supplier,
+    )
+    assert price["observed_at"].startswith("2026-10-20")
+
+    # Model output vs confirmed truth, ready for the eval harness.
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, tenant_id)
+        label = (
+            await session.execute(
+                text(
+                    "SELECT model_output->'lines'->1->>'description',"
+                    " confirmed->'lines'->1->>'description', model"
+                    " FROM receipt_labels WHERE receipt_id = :r"
+                ),
+                {"r": detail["id"]},
+            )
+        ).one()
+    assert tuple(label) == ("GHEE 1.6KG (smudged)", "GHEE 1.6KG", "claude-haiku-5-5")
+
+    # A late parse retry must not overwrite the owner's corrections; confirming twice is a 409.
+    await run_parse(tenant_id, detail["id"])
+    after = await client.get(f"/v1/receipts/{detail['id']}", headers=headers)
+    assert after.json()["lines"][1]["description"] == "GHEE 1.6KG"
+    again = await client.post(
+        url, json=body, headers={**headers, "If-Match": after.headers["etag"]}
+    )
+    assert again.status_code == 409
+
+
+async def test_confirm_rejects_incomplete_or_stale_review(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]], fake_claude: list[str]
+) -> None:
+    _, headers = tenant
+    detail, tag = await parsed(client, tenant)
+    url = f"/v1/receipts/{detail['id']}/confirm"
+    lines = decisions(detail, None)
+    lines[0].pop("base_qty")
+
+    skipped_one = {"lines": lines[:1]}  # the low-confidence line was never looked at
+    resp = await client.post(url, json=skipped_one, headers={**headers, "If-Match": tag})
+    assert resp.status_code == 422
+
+    mapped_without_qty = decisions(detail, str(uuid.uuid4()))
+    mapped_without_qty[0].pop("base_qty")
+    resp = await client.post(
+        url, json={"lines": mapped_without_qty}, headers={**headers, "If-Match": tag}
+    )
+    assert resp.status_code == 422
+
+    stale = await client.post(url, json={"lines": lines}, headers={**headers, "If-Match": '"1"'})
+    assert stale.status_code == 412

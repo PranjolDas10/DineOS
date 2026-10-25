@@ -60,6 +60,7 @@ async def make_tenant(_dispose_pool: None) -> AsyncIterator[MakeTenant]:
         for table in (
             "jobs",
             "extraction_cache",
+            "receipt_labels",
             "receipt_lines",
             "receipts",
             "menu_items",
