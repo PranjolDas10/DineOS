@@ -23,3 +23,12 @@ export const channelName = (c: string) =>
 const day = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 export const dayRange = (from: string, to: string) =>
   `${day.format(new Date(`${from}T12:00`))} to ${day.format(new Date(`${to}T12:00`))}`;
+
+/** "12.5" or "$1,299.99" -> cents; null if it isn't an amount with at most 2 decimals. */
+export function parseDollars(text: string): number | null {
+  const clean = text.trim().replace(/^\$/, "").replaceAll(",", "");
+  return /^\d+(\.\d{1,2})?$/.test(clean) ? Math.round(Number(clean) * 100) : null;
+}
+
+const plain = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+export const amount = (n: number) => plain.format(n);

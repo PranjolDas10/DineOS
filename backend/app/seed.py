@@ -12,6 +12,8 @@ import os
 import random
 import uuid
 from datetime import date, datetime, time, timedelta
+from decimal import Decimal
+from html import escape
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -19,7 +21,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from app import jobs
+from app import jobs, storage
 from app.auth.cli import create_owner
 from app.auth.tokens import issue_access
 from app.config import MigrationSettings
@@ -195,7 +197,94 @@ async def seed(password: str) -> None:
                     )
     while await jobs.run_once(["post_order"]) is not None:
         pass
-    print(f"Seeded {n} orders over {DAYS} days. Log in as {EMAIL}.")
+    await _seed_receipts(tenant, today)
+    print(f"Seeded {n} orders over {DAYS} days and {len(RECEIPTS)} receipts. Log in as {EMAIL}.")
+
+
+# Parsed receipts waiting for review, as if the model had read them: (description, qty, unit,
+# total_cents, confidence). Low confidence = "check this" in the review screen.
+RECEIPTS: dict[str, tuple[int, int | None, list[tuple[str, str, str, int, str]]]] = {
+    # supplier: (days ago, total the model read or None, lines)
+    "Restaurant Depot": (
+        1,
+        None,
+        [
+            ("Chicken thigh boneless", "40", "lb", 21120, "0.97"),
+            ("Onion yellow jumbo", "50", "lb", 5720, "0.95"),
+            ("Heavy cream 36%", "4", "l", 5440, "0.92"),
+            ("PANR BLK 5LB", "2", "each", 9500, "0.61"),
+            ("GHEE 1.6KG", "3", "each", 5397, "0.54"),
+            ("Trash bags 42 gal", "1", "case", 2499, "0.93"),
+        ],
+    ),
+    "Patel Brothers": (
+        3,
+        6150,  # the model read $61.50; the lines add up to $59.50, so the screen flags it
+        [
+            ("Garam masala", "1", "kg", 4800, "0.96"),
+            ("Basmati rice", "20", "lb", 4130, "0.68"),
+            ("Ginger garlic pste", "2", "kg", 3080, "0.72"),
+        ],
+    ),
+}
+
+
+async def _seed_receipts(tenant: uuid.UUID, today: date) -> None:
+    await asyncio.to_thread(storage.ensure_bucket)  # idempotent; local runs skip storage-init
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, tenant)
+        for supplier, (ago, read_total, lines) in RECEIPTS.items():
+            key = f"{tenant}/receipts/demo-{uuid.uuid4()}.svg"
+            total = read_total if read_total is not None else sum(line[3] for line in lines)
+            day = today - timedelta(days=ago)
+            await asyncio.to_thread(
+                storage.put_bytes, key, _receipt_svg(supplier, day, lines, total), "image/svg+xml"
+            )
+            receipt_id = await session.scalar(
+                text(
+                    "INSERT INTO receipts (object_key, status, supplier_name, receipt_date,"
+                    " total_cents, model, prompt_version, input_tokens, output_tokens)"
+                    " VALUES (:k, 'parsed', :s, :d, :t, 'claude-haiku-5-5', 'demo', NULL, NULL)"
+                    " RETURNING id"
+                ),
+                {"k": key, "s": supplier, "d": day, "t": total},
+            )
+            for position, (desc, qty, unit, cents, conf) in enumerate(lines):
+                await session.execute(
+                    text(
+                        "INSERT INTO receipt_lines (receipt_id, position, description, quantity,"
+                        " unit, line_total_cents, confidence)"
+                        " VALUES (:r, :p, :d, :q, :u, :c, :conf)"
+                    ),
+                    {
+                        "r": receipt_id,
+                        "p": position,
+                        "d": desc,
+                        "q": Decimal(qty),
+                        "u": unit,
+                        "c": cents,
+                        "conf": Decimal(conf),
+                    },
+                )
+
+
+def _receipt_svg(
+    supplier: str, day: date, lines: list[tuple[str, str, str, int, str]], total: int
+) -> bytes:
+    """A plain drawn receipt, so the demo has a photo to show next to the fields."""
+    rows = [supplier.upper(), day.strftime("%m/%d/%Y"), ""]
+    rows += [f"{d[:22].upper():<22} {q:>3} {u:<4} {c / 100:>8.2f}" for d, q, u, c, _ in lines]
+    rows += ["", f"{'TOTAL':<31} {total / 100:>8.2f}", "", "THANK YOU"]
+    text_rows = "".join(
+        f'<text x="24" y="{48 + i * 26}">{escape(row)}</text>' for i, row in enumerate(rows)
+    )
+    height = 72 + len(rows) * 26
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="460" height="{height}">'
+        f'<rect width="460" height="{height}" fill="#fbfaf6"/>'
+        f'<g font-family="Courier New, monospace" font-size="15" fill="#2b2b2b"'
+        f' style="white-space:pre">{text_rows}</g></svg>'
+    ).encode()
 
 
 def _at(day: date, hhmm: str, tz: ZoneInfo) -> str:

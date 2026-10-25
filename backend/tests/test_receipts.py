@@ -217,6 +217,7 @@ async def test_confirm_writes_prices_and_eval_label(
     ).json()["id"]
     detail, tag = await parsed(client, tenant)
     assert [line["needs_review"] for line in detail["lines"]] == [False, True]
+    assert detail["photo_url"].startswith("http") and "Signature" in detail["photo_url"]
 
     body = {
         "supplier_id": supplier,

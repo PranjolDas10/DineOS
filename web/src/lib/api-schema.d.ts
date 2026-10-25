@@ -1397,6 +1397,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /** Photo Url */
+            photo_url: string;
             /** Lines */
             lines: components["schemas"]["ReceiptLineOut"][];
         };
