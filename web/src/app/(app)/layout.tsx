@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 
 import { Mark } from "@/components/mark";
-import { api, must } from "@/lib/api";
+import { me as whoAmI } from "@/lib/api";
 
 import { logout } from "../actions";
 import { CommandMenu } from "./command-menu";
@@ -11,7 +11,7 @@ import { ThemeToggle } from "./theme-toggle";
 // Sidebar at laptop width (owner at night), a top bar below it. Pages sit on the gray canvas
 // and put their content in white panels.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const me = must(await (await api()).GET("/v1/auth/me"));
+  const me = await whoAmI();
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <a

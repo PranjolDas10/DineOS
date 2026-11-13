@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { api, must } from "@/lib/api";
+import { api, me, must } from "@/lib/api";
 import { moneyWhole } from "@/lib/format";
 import { addDays, mondayOf, zonedToUtc } from "@/lib/time";
 
@@ -17,7 +17,7 @@ const day = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", t
 export default async function SchedulePage({ searchParams }: PageProps<"/schedule">) {
   const asked = (await searchParams).week;
   const client = await api();
-  const thisWeek = mondayOf(must(await client.GET("/v1/auth/me")).today); // the restaurant's local week
+  const thisWeek = mondayOf((await me()).today); // the restaurant's local week
   const monday = typeof asked === "string" && /^\d{4}-\d{2}-\d{2}$/.test(asked) ? mondayOf(asked) : thisWeek;
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
 

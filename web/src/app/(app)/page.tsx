@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight, TriangleAlert } from "lucide-react";
 
-import { api, must, type Schemas } from "@/lib/api";
+import { api, me, must, type Schemas } from "@/lib/api";
 import { dayRange, moneyWhole, percent } from "@/lib/format";
 import { addDays } from "@/lib/time";
 
@@ -35,7 +35,7 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
   const days = RANGES.includes(asked) ? asked : 7;
   const client = await api();
   // "Today" is the restaurant's local date, not the web server's.
-  const to = must(await client.GET("/v1/auth/me")).today;
+  const to = (await me()).today;
   const from = addDays(to, -(days - 1));
   const range = (a: string, b: string) => ({ params: { query: { from: a, to: b } } });
 
@@ -69,7 +69,8 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
       change: compare ? share(pick(now), now.revenue) - share(pick(prev), prev.revenue) : null,
       unit: " pts",
       upIsGood: false,
-      series: report.daily.map((d) => share(perDay(d), d.revenue_cents)),
+      // A closed day has no ratio; plotting it as 0% would draw a dip that never happened.
+      series: report.daily.filter((d) => d.revenue_cents > 0).map((d) => share(perDay(d), d.revenue_cents)),
     })),
   ];
 
@@ -113,7 +114,10 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
                 {moneyWhole(Math.abs(now.profit))}
               </p>
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                {compare && <Change value={share(now.profit - prev.profit, Math.abs(prev.profit))} unit="%" upIsGood />}
+                {/* A percentage change from exactly $0 is undefined, so it is left out. */}
+                {compare && prev.profit !== 0 && (
+                  <Change value={share(now.profit - prev.profit, Math.abs(prev.profit))} unit="%" upIsGood />
+                )}
                 <span className="text-fg-muted">
                   {percent(now.profit, now.revenue)} of {moneyWhole(now.revenue)} in food sales
                   {compare && `, against ${moneyWhole(prev.profit)} the ${days} days before`}

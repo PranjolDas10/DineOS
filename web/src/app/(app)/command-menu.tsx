@@ -116,7 +116,9 @@ export function CommandMenu() {
             </li>
           ))}
         </ul>
-        {shown.length === 0 && <p className="px-4 pb-6 text-center text-fg-muted">Nothing matches “{query}”.</p>}
+        <p role="status" className="px-4 text-center text-fg-muted empty:hidden">
+          {shown.length === 0 && <span className="block pb-6">Nothing matches “{query}”.</span>}
+        </p>
       </dialog>
     </>
   );

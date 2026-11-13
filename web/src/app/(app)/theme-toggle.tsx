@@ -37,17 +37,16 @@ export function ThemeToggle() {
   // The server can't know the saved choice, so it renders "system" and the client corrects it.
   const theme = useSyncExternalStore(subscribe, read, () => "system" as Theme);
   return (
-    <div role="radiogroup" aria-label="Theme" className="flex w-fit rounded-md border border-line p-0.5">
+    <div role="group" aria-label="Theme" className="flex w-fit rounded-md border border-line p-0.5">
       {OPTIONS.map(({ value, label, icon: Icon }) => (
         <button
           key={value}
           type="button"
-          role="radio"
-          aria-checked={theme === value}
+          aria-pressed={theme === value}
           aria-label={label}
           title={label}
           onClick={() => setTheme(value)}
-          className="grid size-7 cursor-pointer place-items-center rounded-sm text-fg-muted transition-colors hover:text-fg aria-checked:bg-surface-sunken aria-checked:text-fg"
+          className="grid size-7 cursor-pointer place-items-center rounded-sm text-fg-muted transition-colors hover:text-fg aria-pressed:bg-surface-sunken aria-pressed:text-fg"
         >
           <Icon aria-hidden className="size-3.5" />
         </button>

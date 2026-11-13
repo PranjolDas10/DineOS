@@ -9,7 +9,7 @@ const at = (date: string) => new Date(`${date}T12:00`);
 
 /** One column per day: its height is the day's sales, the green part is what was left after
  * food, commission and labor. Plain HTML, no chart library and no client JavaScript: the tooltip
- * is CSS (hover or keyboard focus) and every column carries its numbers as text for screen readers. */
+ * is CSS (hover or keyboard focus), and each column also has the same numbers as screen-reader text. */
 export function DailyChart({ days }: { days: Day[] }) {
   const top = Math.max(...days.map((d) => d.revenue_cents), 1);
   // Label every day for a week; for longer ranges only Mondays, so labels never collide.
@@ -30,7 +30,7 @@ export function DailyChart({ days }: { days: Day[] }) {
             >
               <div
                 className="grow-in mx-auto flex min-h-px w-full max-w-9 flex-col gap-px overflow-hidden rounded-sm transition-opacity group-hover:opacity-80"
-                style={{ height: `${(d.revenue_cents / top) * 100}%`, animationDelay: `${Math.min(i * 25, 400)}ms` }}
+                style={{ height: `${(Math.max(d.revenue_cents, 0) / top) * 100}%`, animationDelay: `${Math.min(i * 25, 400)}ms` }}
               >
                 {profit > 0 && <div className="bg-chart-profit" style={{ flexGrow: profit, flexBasis: 0 }} />}
                 <div
@@ -38,7 +38,12 @@ export function DailyChart({ days }: { days: Day[] }) {
                   style={{ flexGrow: Math.max(d.revenue_cents - profit, 1), flexBasis: 0 }}
                 />
               </div>
+              <span className="sr-only">
+                {weekday.format(at(d.date))}, {monthDay.format(at(d.date))}: {money(d.revenue_cents)} sales,{" "}
+                {loss ? `${money(-d.profit_cents)} loss` : `${money(d.profit_cents)} profit`}
+              </span>
               <p
+                aria-hidden
                 className={`panel pointer-events-none absolute bottom-full z-10 mb-2 hidden px-3 py-2 text-sm whitespace-nowrap shadow-pop group-hover:block group-focus-visible:block ${edge}`}
               >
                 <span className="block font-medium">
