@@ -84,7 +84,8 @@ export function MenuMatrix({ matrix }: { matrix: Matrix }) {
           </div>
         </div>
 
-        <dl className="grid content-start gap-5 p-5">
+        <div className="grid content-start gap-5 p-5">
+          <dl className="grid gap-5">
           {(["star", "plowhorse", "puzzle", "dog"] as Kind[]).map((kind) => {
             const dishes = placed.filter((d) => d.kind === kind);
             return (
@@ -114,11 +115,12 @@ export function MenuMatrix({ matrix }: { matrix: Matrix }) {
               </div>
             );
           })}
+          </dl>
           <p className="border-t border-line pt-4 text-sm text-fg-muted">
             The lines: {Number(matrix.popularity_bar).toFixed(0)} plates (70% of an even share) and{" "}
             {money(matrix.margin_bar_cents)} a plate (the menu&apos;s average).
           </p>
-        </dl>
+        </div>
       </div>
     </section>
   );
