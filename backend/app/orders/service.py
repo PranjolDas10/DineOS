@@ -217,4 +217,4 @@ async def units_sold(session: AsyncSession, since: datetime) -> dict[UUID, Decim
         .where(Order.placed_at >= since, OrderItem.menu_item_id.is_not(None))
         .group_by(OrderItem.menu_item_id)
     )
-    return {menu_item_id: qty for menu_item_id, qty in rows}
+    return {menu_item_id: qty for menu_item_id, qty in rows if menu_item_id is not None}

@@ -69,4 +69,5 @@ async def record_price(
     )
     if current is None or current.observed_at > observed_at:
         return None
-    return Decimal(current.pack_price_cents) / current.pack_qty
+    replaced: Decimal = Decimal(current.pack_price_cents) / current.pack_qty
+    return replaced

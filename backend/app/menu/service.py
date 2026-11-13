@@ -181,17 +181,15 @@ async def margin_watch(
                 "units_sold": sold,
                 # Exact change x plates sold, scaled to a week, rounded once.
                 "weekly_impact_cents": cents((cost_after - cost_before) * sold * 7 / days),
-                "drivers": sorted(
-                    (
-                        {
-                            "ingredient_id": ingredient_id,
-                            "name": labels[ingredient_id][0],
-                            "delta_cents": cents(item.portion_qty * delta),
-                        }
-                        for ingredient_id, delta in moved.items()
-                    ),
-                    key=lambda d: -abs(d["delta_cents"] or 0),
-                ),
+                # Biggest mover first, ordered by the exact change before rounding.
+                "drivers": [
+                    {
+                        "ingredient_id": ingredient_id,
+                        "name": labels[ingredient_id][0],
+                        "delta_cents": cents(item.portion_qty * delta),
+                    }
+                    for ingredient_id, delta in sorted(moved.items(), key=lambda m: -abs(m[1]))
+                ],
             }
         )
     return {
