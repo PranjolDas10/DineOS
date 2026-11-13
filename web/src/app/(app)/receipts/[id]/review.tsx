@@ -88,27 +88,27 @@ export function Review({
     const ingredient = d?.ingredient_id ? names.get(d.ingredient_id) : undefined;
     const auto = autos[line.id];
     return (
-      <li key={line.id} className="border-t border-line">
+      <li key={line.id}>
         <button
           type="button"
           onClick={() => setEditing(line)}
-          className={`grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 px-3 py-3 text-left hover:bg-surface-sunken ${line.needs_review && !d ? "shadow-[inset_4px_0_0_var(--warn)]" : ""}`}
+          className={`grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 px-4 py-3 text-left transition-colors hover:bg-bg ${line.needs_review && !d ? "shadow-[inset_4px_0_0_var(--warn)]" : ""}`}
         >
-          <span className="font-semibold [overflow-wrap:anywhere]">{d?.description ?? line.description}</span>
-          <span className="font-semibold">{money(d?.line_total_cents ?? line.line_total_cents)}</span>
+          <span className="font-medium [overflow-wrap:anywhere]">{d?.description ?? line.description}</span>
+          <span className="font-medium">{money(d?.line_total_cents ?? line.line_total_cents)}</span>
           <span className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-muted">
             <span>
               {amount(Number(d?.quantity ?? line.quantity))} {d?.unit ?? line.unit}
             </span>
             {d ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-ok">
+              <span className="inline-flex items-center gap-1 font-medium text-ok">
                 <CircleCheck aria-hidden className="size-4" />
                 {ingredient
                   ? `${ingredient.name}, ${amount(Number(d.base_qty))} ${ingredient.base_unit}`
                   : "Not an ingredient"}
               </span>
             ) : line.needs_review ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-warn">
+              <span className="inline-flex items-center gap-1 font-medium text-warn">
                 <TriangleAlert aria-hidden className="size-4" />
                 Check this
               </span>
@@ -137,27 +137,27 @@ export function Review({
         <img
           src={receipt.photo_url}
           alt={`Receipt photo from ${receipt.supplier_name ?? "an unknown supplier"}`}
-          className="max-h-[40dvh] w-full rounded-md border border-line bg-surface-sunken object-contain object-top lg:max-h-[calc(100dvh-6rem)]"
+          className="max-h-[40dvh] w-full rounded-lg border border-line bg-surface object-contain object-top lg:max-h-[calc(100dvh-6rem)]"
         />
         <figcaption className="text-sm text-fg-muted">
-          <a href={receipt.photo_url} target="_blank" rel="noreferrer" className="font-medium text-primary-text underline underline-offset-2">
+          <a href={receipt.photo_url} target="_blank" rel="noreferrer" className="font-medium text-accent-text underline underline-offset-2">
             Open the photo full size
           </a>
         </figcaption>
       </figure>
 
       <div className="grid gap-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <h1 className="text-2xl font-semibold sm:col-span-3">Check this receipt</h1>
-          <label className="grid gap-1.5 font-medium sm:col-span-3">
+        <div className="panel grid gap-4 p-5 sm:grid-cols-3">
+          <h1 className="text-xl font-semibold sm:col-span-3">Check this receipt</h1>
+          <label className="grid gap-1.5 text-sm font-medium sm:col-span-3">
             Supplier
             <input className="field" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Date
             <input type="date" className="field" value={date} onChange={(e) => setDate(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Total ($)
             <input inputMode="decimal" className="field" value={total} onChange={(e) => setTotal(e.target.value)} />
           </label>
@@ -177,17 +177,17 @@ export function Review({
 
         {check.length > 0 && (
           <section aria-labelledby="check">
-            <h2 id="check" className="pb-2 text-lg font-semibold">
+            <h2 id="check" className="pb-2 font-semibold">
               Check these <span className="font-normal text-fg-muted">({check.length}, least sure first)</span>
             </h2>
-            <ul className="border-b border-line">{check.map(row)}</ul>
+            <ul className="panel divide-y divide-line overflow-hidden">{check.map(row)}</ul>
           </section>
         )}
 
         {fine.length > 0 && (
           <section aria-labelledby="fine">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-              <h2 id="fine" className="text-lg font-semibold">
+              <h2 id="fine" className="font-semibold">
                 Look right <span className="font-normal text-fg-muted">({fine.length})</span>
               </h2>
               {acceptable.length > 0 && (
@@ -199,17 +199,17 @@ export function Review({
                       ...Object.fromEntries(acceptable.map((l) => [l.id, autos[l.id]!])),
                     }))
                   }
-                  className="min-h-11 cursor-pointer rounded-md border border-line-strong px-4 font-semibold hover:bg-surface-sunken"
+                  className="btn-secondary"
                 >
                   Accept {acceptable.length}
                 </button>
               )}
             </div>
-            <ul className="border-b border-line">{fine.map(row)}</ul>
+            <ul className="panel divide-y divide-line overflow-hidden">{fine.map(row)}</ul>
           </section>
         )}
 
-        <div className="sticky bottom-0 grid gap-3 border-t border-line bg-surface py-4">
+        <div className="sticky bottom-0 grid gap-3 border-t border-line bg-bg py-4">
           {error && (
             <p role="alert" className="flex gap-2 rounded-md bg-danger-bg p-3 text-danger">
               <CircleAlert aria-hidden className="mt-0.5 size-5 shrink-0" />
@@ -219,7 +219,7 @@ export function Review({
           <p className="text-sm text-fg-muted" aria-live="polite">
             {receipt.lines.length - undecided} of {receipt.lines.length} lines decided
           </p>
-          <button type="button" onClick={save} disabled={undecided > 0 || saving} className="btn-primary px-5">
+          <button type="button" onClick={save} disabled={undecided > 0 || saving} className="btn-primary">
             {saving
               ? "Saving…"
               : undecided > 0

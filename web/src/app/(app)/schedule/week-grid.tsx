@@ -40,8 +40,8 @@ export function WeekGrid({
   }
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-line">
-        <table className="w-full min-w-[56rem] border-collapse text-sm">
+      <div className="panel overflow-x-auto">
+        <table className="w-full min-w-[56rem] table-fixed border-collapse text-sm">
           <thead>
             <tr className="bg-bg text-left text-fg-muted">
               <th scope="col" className="w-36 px-3 py-2 font-medium">
@@ -74,9 +74,9 @@ export function WeekGrid({
                             key={s.id}
                             type="button"
                             onClick={() => setEditing({ staff: person, day: d, shift: s })}
-                            className="cursor-pointer rounded-sm border border-line-strong bg-surface px-2 py-1.5 text-left hover:border-primary"
+                            className="cursor-pointer rounded-md border border-line bg-bg px-2 py-1.5 text-left transition-colors hover:border-fg-muted"
                           >
-                            <span className="block font-semibold whitespace-nowrap">
+                            <span className="block font-medium whitespace-nowrap">
                               {zoned(s.starts_at, tz).time}–{zoned(s.ends_at, tz).time}
                             </span>
                             <span className="block text-fg-muted">

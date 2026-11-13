@@ -63,7 +63,7 @@ export function ChannelBars({ channels }: { channels: Channel[] }) {
               </p>
               <div className="relative col-span-2 md:col-span-1">
                 <div
-                  className="flex h-9 gap-0.5 overflow-hidden rounded-sm"
+                  className="grow-across flex h-6 gap-0.5 overflow-hidden rounded-sm"
                   style={{ width: `${(Math.max(c.revenue_cents, costs(c)) / scale) * 100}%` }}
                 >
                   {parts.map((p) => (
@@ -92,10 +92,10 @@ export function ChannelBars({ channels }: { channels: Channel[] }) {
       </ul>
 
       <details className="group">
-        <summary className="min-h-11 cursor-pointer py-2 font-medium text-primary-text">
+        <summary className="w-fit cursor-pointer rounded-sm py-1 text-sm font-medium text-accent-text">
           Show the numbers as a table
         </summary>
-        <div className="overflow-x-auto">
+        <div className="mt-3 overflow-x-auto rounded-md border border-line">
           <table className="data-table">
             <thead>
               <tr>

@@ -24,9 +24,9 @@ export default async function ReceiptsPage({ searchParams }: PageProps<"/receipt
   const waiting = items.filter((r) => r.status === "parsed").length;
 
   return (
-    <div className="mx-auto grid max-w-3xl gap-8 [&>*]:min-w-0">
-      <div className="grid gap-2">
-        <h1 className="text-3xl font-semibold">Receipts</h1>
+    <div className="rise mx-auto grid max-w-3xl gap-6 [&>*]:min-w-0">
+      <div>
+        <h1 className="text-2xl font-semibold">Receipts</h1>
         <p className="text-fg-muted">
           {waiting === 0
             ? "Nothing to review. Scan supplier receipts with the phone app and they appear here."
@@ -34,39 +34,39 @@ export default async function ReceiptsPage({ searchParams }: PageProps<"/receipt
         </p>
       </div>
       {saved !== undefined && (
-        <p role="status" className="flex gap-2 rounded-md bg-ok-bg p-3 text-ok">
-          <CircleCheck aria-hidden className="mt-0.5 size-5 shrink-0" />
+        <p role="status" className="flex gap-2 rounded-md bg-ok-bg p-3 text-sm font-medium text-ok">
+          <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
           Saved. {saved} ingredient {saved === "1" ? "price" : "prices"} updated, in{" "}
           {Math.floor(Number(secs) / 60)} min {Number(secs) % 60} s.
         </p>
       )}
-      <ul className="border-t border-line">
+      <ul className="panel divide-y divide-line overflow-hidden">
         {items.map((r) => {
           const status = STATUS[r.status as keyof typeof STATUS] ?? STATUS.uploaded;
           const content = (
             <>
               <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{r.supplier_name ?? "Unknown supplier"}</span>
+                <span className="block font-medium">{r.supplier_name ?? "Unknown supplier"}</span>
                 <span className="block text-sm text-fg-muted">
                   {r.receipt_date ? day.format(new Date(`${r.receipt_date}T12:00`)) : "No date"}
                   {r.total_cents !== null && `, ${money(r.total_cents)}`}
                 </span>
               </span>
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-semibold ${status.className}`}>
-                <status.icon aria-hidden className="size-4" />
+              <span className={`badge ${status.className}`}>
+                <status.icon aria-hidden className="size-3.5" />
                 {status.label}
               </span>
             </>
           );
           return (
-            <li key={r.id} className="border-b border-line">
+            <li key={r.id}>
               {r.status === "parsed" ? (
-                <Link href={`/receipts/${r.id}`} className="flex min-h-16 items-center gap-4 px-2 py-3 hover:bg-surface-sunken">
+                <Link href={`/receipts/${r.id}`} className="flex min-h-16 items-center gap-4 px-5 py-3 transition-colors hover:bg-bg">
                   {content}
-                  <ChevronRight aria-hidden className="size-5 text-fg-muted" />
+                  <ChevronRight aria-hidden className="size-4 text-fg-muted" />
                 </Link>
               ) : (
-                <div className="flex min-h-16 items-center gap-4 px-2 py-3 pr-11">{content}</div>
+                <div className="flex min-h-16 items-center gap-4 px-5 py-3 pr-13">{content}</div>
               )}
             </li>
           );

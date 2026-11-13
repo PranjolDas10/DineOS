@@ -80,7 +80,7 @@ export function ShiftEditor({
       ref={dialog}
       onClose={onClose}
       aria-labelledby="shift-title"
-      className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-0 text-fg backdrop:bg-black/50"
+      className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-0 text-fg shadow-pop"
     >
       <form onSubmit={save} className="grid gap-5 p-6">
         <div>
@@ -92,11 +92,11 @@ export function ShiftEditor({
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Starts
             <input type="time" required className="field min-w-0" value={start} onChange={(e) => setStart(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Ends
             <input
               type="time"
@@ -112,7 +112,7 @@ export function ShiftEditor({
           {overnight ? "Ends the next day. " : ""}
           {length.toFixed(1)} hours, {money(Math.round(length * rate))} at {money(rate)}/h
         </p>
-        <label className="grid gap-1.5 font-medium">
+        <label className="grid gap-1.5 text-sm font-medium">
           Note <span className="text-sm font-normal text-fg-muted">Optional, e.g. &quot;closing&quot;</span>
           <input className="field" value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} />
         </label>
@@ -128,7 +128,7 @@ export function ShiftEditor({
               type="button"
               disabled={pending}
               onClick={() => (confirmDelete ? run(() => deleteShift(shift.id, shift.version)) : setConfirmDelete(true))}
-              className="min-h-12 cursor-pointer rounded-md px-3 font-semibold text-danger hover:bg-danger-bg"
+              className="min-h-10 cursor-pointer rounded-md px-3 font-medium text-danger transition-colors hover:bg-danger-bg"
             >
               {confirmDelete ? "Yes, delete it" : "Delete shift"}
             </button>
@@ -137,11 +137,11 @@ export function ShiftEditor({
           <button
             type="button"
             onClick={() => dialog.current?.close()}
-            className="min-h-12 cursor-pointer rounded-md border border-line-strong px-5 font-semibold hover:bg-surface-sunken"
+            className="btn-secondary"
           >
             Cancel
           </button>
-          <button type="submit" disabled={pending || length > 16} className="btn-primary px-6">
+          <button type="submit" disabled={pending || length > 16} className="btn-primary">
             {pending ? "Saving…" : "Save shift"}
           </button>
         </div>

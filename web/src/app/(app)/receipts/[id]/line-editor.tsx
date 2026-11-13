@@ -85,7 +85,7 @@ export function LineEditor({
       ref={dialog}
       onClose={onClose}
       aria-labelledby="line-title"
-      className="m-auto w-[min(36rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-0 text-fg backdrop:bg-black/50"
+      className="m-auto w-[min(36rem,calc(100vw-2rem))] rounded-lg border border-line bg-surface p-0 text-fg shadow-pop"
     >
       <form onSubmit={save} noValidate className="grid gap-5 p-6">
         <div>
@@ -97,25 +97,25 @@ export function LineEditor({
             {money(line.line_total_cents)} ({Math.round(Number(line.confidence) * 100)}% sure)
           </p>
         </div>
-        <label className="grid gap-1.5 font-medium">
+        <label className="grid gap-1.5 text-sm font-medium">
           Description
           <input className="field" value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
         <div className="grid grid-cols-3 gap-3">
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Quantity
             <input inputMode="decimal" className="field min-w-0" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Unit
             <input className="field min-w-0" value={unit} onChange={(e) => setUnit(e.target.value)} />
           </label>
-          <label className="grid gap-1.5 font-medium">
+          <label className="grid gap-1.5 text-sm font-medium">
             Line total ($)
             <input inputMode="decimal" className="field min-w-0" value={total} onChange={(e) => setTotal(e.target.value)} />
           </label>
         </div>
-        <label className="grid gap-1.5 font-medium">
+        <label className="grid gap-1.5 text-sm font-medium">
           What is it?
           <select className="field" value={what} onChange={(e) => choose(e.target.value)}>
             <option value="" disabled>
@@ -131,7 +131,7 @@ export function LineEditor({
         </label>
         {ingredient && (
           <div className="grid gap-1.5 rounded-md bg-surface-sunken p-4">
-            <label className="grid gap-1.5 font-medium">
+            <label className="grid gap-1.5 text-sm font-medium">
               How much {ingredient.name}, in {ingredient.base_unit}
               <input
                 inputMode="decimal"
@@ -160,11 +160,11 @@ export function LineEditor({
           <button
             type="button"
             onClick={() => dialog.current?.close()}
-            className="min-h-12 cursor-pointer rounded-md border border-line-strong px-5 font-semibold hover:bg-surface-sunken"
+            className="btn-secondary"
           >
             Cancel
           </button>
-          <button type="submit" className="btn-primary px-6">
+          <button type="submit" className="btn-primary">
             Save line
           </button>
         </div>
