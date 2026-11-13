@@ -26,6 +26,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from app import jobs, storage
+from app.alerts import service as alerts
 from app.auth.cli import create_owner
 from app.auth.tokens import issue_access
 from app.config import MigrationSettings
@@ -254,6 +255,17 @@ async def seed(password: str, reset: bool = False) -> None:
     while await jobs.run_once(["post_order"]) is not None:
         pass
     await _seed_receipts(tenant, today)
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, tenant)
+        # What confirming a receipt writes when a price moved (see receipts/review.py).
+        for name, pct in (("Butter", 19), ("Chicken thigh", 8)):
+            await alerts.notify(
+                session,
+                "price_change",
+                f"{name} is up {pct}%",
+                "From the Restaurant Depot receipt you just checked."
+                " Menu costs shows which dishes it changes.",
+            )
     print(f"Seeded {n} orders over {DAYS} days and {len(RECEIPTS)} receipts. Log in as {EMAIL}.")
 
 

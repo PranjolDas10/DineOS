@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText, type LucideIcon } from "lucide-react";
+import { Bell, CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText, type LucideIcon } from "lucide-react";
 
 export type Destination = { href: string; label: string; icon: LucideIcon; hint: string };
 
@@ -18,13 +18,15 @@ export const GROUPS: { title: string; links: Destination[] }[] = [
   {
     title: "Operations",
     links: [
+      { href: "/alerts", label: "Alerts", icon: Bell, hint: "Price changes and overdue checklists" },
       { href: "/receipts", label: "Receipts", icon: ReceiptText, hint: "Review scanned supplier receipts" },
       { href: "/schedule", label: "Schedule", icon: CalendarDays, hint: "Shifts and labor for the week" },
     ],
   },
 ];
 
-export function Nav() {
+/** `counts` puts a number beside a link, e.g. unread alerts. */
+export function Nav({ counts = {} }: { counts?: Record<string, number> }) {
   const pathname = usePathname();
   return (
     <div className="flex gap-1 overflow-x-auto lg:grid lg:gap-5 lg:overflow-visible">
@@ -43,6 +45,12 @@ export function Nav() {
                   >
                     <Icon aria-hidden className="size-4" />
                     {label}
+                    {counts[href] > 0 && (
+                      <span className="ml-auto rounded-full bg-primary px-1.5 text-xs leading-5 font-semibold text-on-primary">
+                        {counts[href]}
+                        <span className="sr-only"> new</span>
+                      </span>
+                    )}
                   </Link>
                 </li>
               );

@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 
 import { Mark } from "@/components/mark";
-import { me as whoAmI } from "@/lib/api";
+import { api, me as whoAmI, must } from "@/lib/api";
 
 import { logout } from "../actions";
 import { CommandMenu } from "./command-menu";
@@ -11,7 +11,12 @@ import { ThemeToggle } from "./theme-toggle";
 // Sidebar at laptop width (owner at night), a top bar below it. Pages sit on the gray canvas
 // and put their content in white panels.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const me = await whoAmI();
+  const [me, unread] = await Promise.all([
+    whoAmI(),
+    api()
+      .then((client) => client.GET("/v1/alerts", { params: { query: { unread: true, limit: 100 } } }))
+      .then(must),
+  ]);
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_minmax(0,1fr)]">
       <a
@@ -28,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <CommandMenu />
         </div>
         <nav aria-label="Main" className="order-last w-full lg:order-none lg:w-auto">
-          <Nav />
+          <Nav counts={{ "/alerts": unread.items.length }} />
         </nav>
         <div className="flex items-center gap-2 lg:mt-auto lg:grid lg:gap-3 lg:border-t lg:border-line lg:pt-3">
           <div className="hidden items-center gap-2.5 px-1.5 lg:flex">

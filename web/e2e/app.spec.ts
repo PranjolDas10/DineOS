@@ -9,7 +9,7 @@ async function expectAccessible(page: Page) {
 test("pages pass axe in light and dark", async ({ page }) => {
   for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
-    for (const path of ["/", "/menu", "/receipts", "/schedule"]) {
+    for (const path of ["/", "/menu", "/alerts", "/receipts", "/schedule"]) {
       await page.goto(path);
       await expectAccessible(page);
     }
@@ -88,4 +88,16 @@ test("menu costs shows what ingredient price changes did to dishes", async ({ pa
   // The matrix lists every placed dish by kind, beside the plot.
   const matrix = page.getByRole("region", { name: "What to push, reprice or rethink" });
   await expect(matrix.getByText("Stars", { exact: true }).last()).toBeVisible();
+});
+
+// Last: it empties the inbox the earlier tests (and the axe pass) expect to have content.
+test("alerts show in the sidebar and can be marked read", async ({ page }) => {
+  await page.goto("/");
+  const link = page.getByRole("link", { name: /^Alerts/ });
+  await expect(link).toContainText(/\d+ new/);
+  await link.click();
+  await expect(page.getByText("Butter is up 19%")).toBeVisible();
+  await page.getByRole("button", { name: "Mark all read" }).click();
+  await expect(page.getByText("Nothing new.")).toBeVisible();
+  await expect(link).not.toContainText("new");
 });
