@@ -46,7 +46,10 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
   ]);
   const now = totals(report);
   const prev = totals(before);
-  const compare = prev.revenue > 0;
+  // Compare only like with like: if the earlier window is mostly empty (data starts partway
+  // through it), "+1750%" would be true and meaningless.
+  const selling = (r: Schemas["ProfitReport"]) => r.daily.filter((d) => d.revenue_cents > 0).length;
+  const compare = selling(before) * 2 >= selling(report) && prev.revenue > 0;
 
   const kpis = [
     {
