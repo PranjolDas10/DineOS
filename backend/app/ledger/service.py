@@ -2,7 +2,7 @@
 reports profit by channel and by dish."""
 
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -123,23 +123,28 @@ async def profit_report(session: AsyncSession, first: date, last: date) -> dict[
     Labor comes from the schedule and is allocated to channels by their share of revenue."""
     rows = await session.execute(
         text(
-            "SELECT e.channel, e.account, e.menu_item_id, sum(e.amount_cents) AS cents"
+            "SELECT t.business_date, e.channel, e.account, e.menu_item_id,"
+            " sum(e.amount_cents) AS cents"
             " FROM ledger_entries e JOIN ledger_transactions t ON t.id = e.transaction_id"
             " WHERE t.business_date BETWEEN :a AND :b"
-            " GROUP BY e.channel, e.account, e.menu_item_id"
+            " GROUP BY t.business_date, e.channel, e.account, e.menu_item_id"
         ),
         {"a": first, "b": last},
     )
     by_channel: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     by_dish: dict[UUID | None, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    for channel, account, menu_item_id, amount in rows:
+    by_day: dict[date, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for day, channel, account, menu_item_id, amount in rows:
         by_channel[channel][account] += int(amount)
+        by_day[day][account] += int(amount)
         if account in ("revenue", "food_cost"):
             by_dish[menu_item_id][account] += int(amount)
 
     channels = sorted(by_channel)
     revenue = [-by_channel[c]["revenue"] for c in channels]  # credits are negative
-    labor = (await scheduling.labor_report(session, first, last))["total_labor_cents"]
+    labor_report = await scheduling.labor_report(session, first, last)
+    labor = labor_report["total_labor_cents"]
+    labor_by_day = {d["date"]: d["labor_cents"] for d in labor_report["days"]}
     labor_parts = allocate(labor, revenue)
     names = await menu.menu_item_names(session)
     incomplete = await session.scalar(
@@ -168,6 +173,19 @@ async def profit_report(session: AsyncSession, first: date, last: date) -> dict[
     return {
         "labor_cents": labor,
         "sales_with_unknown_food_cost": incomplete,
+        # Every day in the range, quiet days included, so a chart has no gaps.
+        "daily": [
+            {
+                "date": day,
+                **row(
+                    -by_day[day]["revenue"],
+                    by_day[day]["platform_commission"],
+                    by_day[day]["food_cost"],
+                    labor_by_day.get(day, 0),
+                ),
+            }
+            for day in (first + timedelta(days=n) for n in range((last - first).days + 1))
+        ],
         "channels": [
             {
                 "channel": c,
