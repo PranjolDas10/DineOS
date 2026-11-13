@@ -1,7 +1,8 @@
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 
 from app import crud
 from app.api import Limit, Page, etag, if_match
@@ -13,6 +14,7 @@ from app.menu.schemas import (
     LineIn,
     LineOut,
     Lines,
+    MarginWatch,
     MenuItemCreate,
     MenuItemOut,
     MenuItemUpdate,
@@ -21,6 +23,7 @@ from app.menu.schemas import (
     RecipeOut,
     RecipeUpdate,
 )
+from app.orders import service as orders
 
 router = APIRouter(prefix="/v1", tags=["menu"])
 IfMatch = Annotated[int, Depends(if_match)]
@@ -126,3 +129,14 @@ async def get_recipe_cost(recipe_id: UUID, session: TenantSession) -> Any:
 @router.get("/reports/food-cost", response_model=FoodCostReport)
 async def food_cost_report(session: TenantSession) -> Any:
     return {"items": await service.food_cost_report(session)}
+
+
+@router.get("/reports/margin-watch", response_model=MarginWatch)
+async def margin_watch(
+    session: TenantSession, days: Annotated[int, Query(ge=1, le=90)] = 28
+) -> Any:
+    """Composed here, not in menu.service: sales volume belongs to orders, and orders.service
+    already imports menu.service, so the service can't import it back."""
+    since = datetime.now(UTC) - timedelta(days=days)
+    sold = await orders.units_sold(session, since)
+    return await service.margin_watch(session, since, days, sold)

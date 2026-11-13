@@ -79,3 +79,10 @@ test("the command menu jumps to a page from the keyboard", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/schedule$/);
 });
+
+test("menu costs shows what ingredient price changes did to dishes", async ({ page }) => {
+  await page.goto("/menu");
+  const watch = page.getByRole("region", { name: /Ingredient prices are costing about \$\d+ more a week/ });
+  await expect(watch.getByText("Butter", { exact: true })).toBeVisible();
+  await expect(watch.getByText(/keeps your margin/).first()).toBeVisible();
+});

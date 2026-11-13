@@ -322,3 +322,49 @@ async def test_eval_harness_scores_confirmed_receipts(
     # The fake model misread the ghee line ("(smudged)" suffix); the owner fixed it.
     assert report["line_recall_pct"] == 100.0
     assert report["line_field_accuracy_pct"]["line_total_cents"] == 100.0
+
+
+async def test_confirm_alerts_when_a_price_moved(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]], fake_claude: list[str]
+) -> None:
+    _, headers = tenant
+    onion = (
+        await client.post(
+            "/v1/ingredients", json={"name": "Onion", "base_unit": "g"}, headers=headers
+        )
+    ).json()["id"]
+    # Last known price: $27.99 a sack. The receipt says $34.99: up 25%.
+    old = {"pack_qty": 22680, "pack_price_cents": 2799, "observed_at": "2026-10-01T00:00:00Z"}
+    await client.post(f"/v1/ingredients/{onion}/prices", json=old, headers=headers)
+    detail, tag = await parsed(client, tenant)
+    body = {"receipt_date": "2026-10-20", "lines": decisions(detail, onion)}
+
+    resp = await client.post(
+        f"/v1/receipts/{detail['id']}/confirm", json=body, headers={**headers, "If-Match": tag}
+    )
+    assert resp.status_code == 200, resp.text
+
+    alerts = (await client.get("/v1/alerts", headers=headers)).json()["items"]
+    assert [(a["kind"], a["title"]) for a in alerts] == [("price_change", "Onion is up 25%")]
+
+
+async def test_backdated_receipt_does_not_alert(
+    client: AsyncClient, tenant: tuple[UUID, dict[str, str]], fake_claude: list[str]
+) -> None:
+    """A receipt older than the current price changes history, not today's cost."""
+    _, headers = tenant
+    onion = (
+        await client.post(
+            "/v1/ingredients", json={"name": "Onion", "base_unit": "g"}, headers=headers
+        )
+    ).json()["id"]
+    newer = {"pack_qty": 22680, "pack_price_cents": 2799, "observed_at": "2026-11-01T00:00:00Z"}
+    await client.post(f"/v1/ingredients/{onion}/prices", json=newer, headers=headers)
+    detail, tag = await parsed(client, tenant)
+    body = {"receipt_date": "2026-10-20", "lines": decisions(detail, onion)}
+
+    resp = await client.post(
+        f"/v1/receipts/{detail['id']}/confirm", json=body, headers={**headers, "If-Match": tag}
+    )
+    assert resp.status_code == 200, resp.text
+    assert (await client.get("/v1/alerts", headers=headers)).json()["items"] == []

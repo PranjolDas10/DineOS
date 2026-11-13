@@ -3,13 +3,19 @@
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 
-from app.menu.costing import Line, cost_recipes
+from app.config import MigrationSettings
+from app.db import SessionLocal, set_tenant
+from app.menu.costing import Line, cost_drivers, cost_recipes
 from app.money import cents, percent
+from app.orders import service as orders
 from tests import mock_menu
 from tests.conftest import MakeTenant, auth_headers
 
@@ -109,3 +115,106 @@ async def test_unknown_recipe_cost_is_404(client: AsyncClient, make_tenant: Make
     headers = auth_headers(await make_tenant())
     resp = await client.get(f"/v1/recipes/{UUID(int=0)}/cost", headers=headers)
     assert resp.status_code == 404
+
+
+def test_cost_drivers_split_a_move_exactly() -> None:
+    """Cost is linear in prices, so per-ingredient shares add up to the whole change, even
+    through a shared sub-recipe, and an untouched recipe has no drivers."""
+    onion, butter, salt = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    paste, curry, rice = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    yields = {paste: Decimal(1000), curry: Decimal(4), rice: Decimal(1)}
+    lines = {
+        paste: [Line(onion, None, Decimal(1200)), Line(butter, None, Decimal(50))],
+        # The curry uses butter directly and again through the paste.
+        curry: [Line(None, paste, Decimal(600)), Line(butter, None, Decimal(30))],
+        rice: [Line(salt, None, Decimal(2))],
+    }
+    before = {onion: Decimal("0.10"), butter: Decimal("0.80"), salt: Decimal("0.05")}
+    after = {**before, onion: Decimal("0.13"), butter: Decimal("1.00")}
+
+    drivers = cost_drivers(yields, lines, before, after)
+
+    was, now = cost_recipes(yields, lines, before), cost_recipes(yields, lines, after)
+    for recipe in (paste, curry):
+        change = now[recipe].per_unit - was[recipe].per_unit  # type: ignore[operator]
+        assert sum(drivers[recipe].values()) == change
+    # Butter in one curry portion: (600 g paste * 50/1000 + 30 g) / 4 = 15 g, at +0.20 c/g.
+    assert drivers[curry][butter] == Decimal("3.00")
+    assert rice not in drivers
+    # A first-ever price is not a change.
+    assert cost_drivers(yields, lines, {}, after) == {}
+
+
+async def test_margin_watch_reports_what_a_price_rise_did(
+    client: AsyncClient, make_tenant: MakeTenant
+) -> None:
+    tenant = await make_tenant()
+    headers = auth_headers(tenant)
+    ids = await mock_menu.load(client, headers)
+    # The menu's prices become "40 days ago" (as the owner role: the app role can't edit prices).
+    owner = create_async_engine(MigrationSettings().migration_database_url)
+    async with owner.begin() as conn:
+        await conn.execute(
+            text(
+                "UPDATE ingredient_prices SET observed_at = now() - interval '40 days'"
+                " WHERE tenant_id = :t"
+            ),
+            {"t": tenant},
+        )
+    await owner.dispose()
+    # Butter goes from 0.80 to 1.00 c/g today. 28 Butter Chickens sold in the last 28 days.
+    await client.post(
+        f"/v1/ingredients/{ids['Butter']}/prices",
+        json={"pack_qty": 1000, "pack_price_cents": 1000},
+        headers=headers,
+    )
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, tenant)
+        menu_ids = await menu_service_ids(session)
+        await orders.ingest(
+            session,
+            "dineos",
+            {
+                "external_id": "1",
+                "channel": "dine_in",
+                "placed_at": (datetime.now(UTC) - timedelta(days=3)).isoformat(),
+                "tax_cents": 0,
+                "tip_cents": 0,
+                "items": [
+                    {
+                        "name": "Butter Chicken",
+                        "quantity": "28",
+                        "unit_price_cents": 1799,
+                        "line_total_cents": 28 * 1799,
+                    }
+                ],
+            },
+            None,
+            menu_ids,
+        )
+
+    report = (await client.get("/v1/reports/margin-watch", headers=headers)).json()
+
+    assert [
+        (i["name"], i["unit_cents_before"], i["unit_cents_after"], i["change_pct"])
+        for i in report["ingredients"]
+    ] == [("Butter", "0.8000", "1.0000", "25.0")]
+    assert report["ingredients"][0]["dishes_affected"] == 2
+    dishes = {d["name"]: d for d in report["dishes"]}
+    assert set(dishes) == {"Butter Chicken", "Garlic Naan"}  # Chana Masala has no butter
+    bc = dishes["Butter Chicken"]
+    # A 6000 g batch holds 50 g butter + 2500 g gravy * 250/5000 = 175 g; a 350 g portion
+    # holds 10.2083 g, so +0.20 c/g adds 2.0417 c: 147.233 -> 149.275.
+    assert (bc["cost_before_cents"], bc["cost_after_cents"]) == (147, 149)
+    assert (bc["food_cost_pct_before"], bc["food_cost_pct_after"]) == ("8.2", "8.3")
+    assert bc["drivers"] == [{"ingredient_id": ids["Butter"], "name": "Butter", "delta_cents": 2}]
+    # 2.0417 c * 28 plates * 7/28 days = 14.29 -> 14 c a week.
+    assert (bc["units_sold"], bc["weekly_impact_cents"]) == ("28", 14)
+    assert dishes["Garlic Naan"]["weekly_impact_cents"] == 0  # none sold
+    assert report["weekly_impact_cents"] == 14
+
+
+async def menu_service_ids(session: Any) -> dict[str, UUID]:
+    from app.menu import service as menu
+
+    return await menu.menu_item_ids_by_name(session, {"Butter Chicken"})

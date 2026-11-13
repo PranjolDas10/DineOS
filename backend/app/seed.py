@@ -57,6 +57,15 @@ INGREDIENTS = {
     "Basmati rice": ("g", 9072, 4620),
     "Mango pulp": ("ml", 850, 990),
 }
+# Supplier prices that moved since: name -> (days ago, new pack_price_cents). The menu costs
+# page shows what each did to the dishes that use it.
+PRICE_MOVES = {
+    "Lamb shoulder": (16, 15490),  # +10%
+    "Paneer": (11, 4520),  # +8%
+    "Butter": (8, 2490),  # +19%
+    "Chicken thigh": (5, 11400),  # +8%
+    "Onion": (3, 5150),  # -10%
+}
 # name: (yield_qty, yield_unit, [(ingredient or sub-recipe, qty)]); sub-recipes come first
 RECIPES: dict[str, tuple[int, str, list[tuple[str, int]]]] = {
     "Onion masala": (
@@ -173,11 +182,20 @@ async def seed(password: str, reset: bool = False) -> None:
             ids[name] = (await call("POST", "/v1/ingredients", {"name": name, "base_unit": unit}))[
                 "id"
             ]
+            prices = f"/v1/ingredients/{ids[name]}/prices"
+            # The starting price predates the demo window; some then move inside it.
             await call(
                 "POST",
-                f"/v1/ingredients/{ids[name]}/prices",
-                {"pack_qty": qty, "pack_price_cents": cents},
+                prices,
+                {"pack_qty": qty, "pack_price_cents": cents, "observed_at": _days_ago(DAYS + 14)},
             )
+            if name in PRICE_MOVES:
+                ago, moved = PRICE_MOVES[name]
+                await call(
+                    "POST",
+                    prices,
+                    {"pack_qty": qty, "pack_price_cents": moved, "observed_at": _days_ago(ago)},
+                )
         for name, (yqty, yunit, lines) in RECIPES.items():
             recipe = await call(
                 "POST", "/v1/recipes", {"name": name, "yield_qty": yqty, "yield_unit": yunit}
@@ -323,6 +341,10 @@ def _receipt_svg(
         f'<g font-family="Courier New, monospace" font-size="15" fill="#2b2b2b"'
         f' style="white-space:pre">{text_rows}</g></svg>'
     ).encode()
+
+
+def _days_ago(days: int) -> str:
+    return (datetime.now(ZoneInfo("UTC")) - timedelta(days=days)).isoformat()
 
 
 def _at(day: date, hhmm: str, tz: ZoneInfo) -> str:
