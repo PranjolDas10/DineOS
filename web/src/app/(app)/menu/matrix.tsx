@@ -23,8 +23,9 @@ export function MenuMatrix({ matrix }: { matrix: Matrix }) {
   const unplaced = matrix.dishes.length - placed.length;
 
   // Both axes run a little past the data, and far enough to keep each bar inside the box.
-  const maxUnits = Math.max(...placed.map((d) => Number(d.units_sold)), Number(matrix.popularity_bar) * 1.5) * 1.12;
-  const maxMargin = Math.max(...placed.map((d) => d.margin_cents!), matrix.margin_bar_cents * 1.5) * 1.12;
+  // At least 1, so a menu where nothing earns or sells can't divide by zero.
+  const maxUnits = Math.max(...placed.map((d) => Number(d.units_sold)), Number(matrix.popularity_bar) * 1.5, 1) * 1.12;
+  const maxMargin = Math.max(...placed.map((d) => d.margin_cents!), matrix.margin_bar_cents * 1.5, 1) * 1.12;
   const x = (units: string | number) => (Number(units) / maxUnits) * 100;
   const y = (cents: number) => (Math.max(cents, 0) / maxMargin) * 100;
   const [barX, barY] = [x(matrix.popularity_bar), y(matrix.margin_bar_cents)];

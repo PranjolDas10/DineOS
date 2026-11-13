@@ -92,10 +92,10 @@ export function PriceWatch({ watch }: { watch: Watch }) {
                     <ArrowRight aria-hidden className="mx-1 inline size-3.5" />
                     <span className="sr-only">to</span>
                     <span className="text-fg">{money(d.cost_after_cents)}</span> to make, food cost{" "}
-                    {d.food_cost_pct_before}%
+                    {d.food_cost_pct_before ?? "–"}%
                     <ArrowRight aria-hidden className="mx-1 inline size-3.5" />
                     <span className="sr-only">to</span>
-                    <span className="text-fg">{d.food_cost_pct_after}%</span>. {Number(d.units_sold).toFixed(0)} sold.
+                    <span className="text-fg">{d.food_cost_pct_after ?? "–"}%</span>. {Number(d.units_sold).toFixed(0)} sold.
                   </p>
                   <p className="col-span-2 flex flex-wrap gap-1.5 text-sm">
                     {d.drivers

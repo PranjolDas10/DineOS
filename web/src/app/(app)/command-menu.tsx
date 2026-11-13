@@ -63,7 +63,7 @@ export function CommandMenu() {
       >
         <Search aria-hidden className="size-4" />
         <span className="flex-1 text-left">Search</span>
-        <kbd className="kbd">Ctrl K</kbd>
+        <kbd className="kbd hidden lg:inline">Ctrl K</kbd>
       </button>
       <dialog
         ref={dialog}
@@ -112,7 +112,7 @@ export function CommandMenu() {
             >
               <command.icon aria-hidden className="size-4 text-fg-muted" />
               <span className="font-medium">{command.label}</span>
-              <span className="ml-auto text-sm text-fg-muted">{command.hint}</span>
+              <span className="ml-auto hidden text-sm text-fg-muted sm:inline">{command.hint}</span>
             </li>
           ))}
         </ul>
