@@ -85,4 +85,7 @@ test("menu costs shows what ingredient price changes did to dishes", async ({ pa
   const watch = page.getByRole("region", { name: /Ingredient prices are costing about \$\d+ more a week/ });
   await expect(watch.getByText("Butter", { exact: true })).toBeVisible();
   await expect(watch.getByText(/keeps your margin/).first()).toBeVisible();
+  // The matrix lists every placed dish by kind, beside the plot.
+  const matrix = page.getByRole("region", { name: "What to push, reprice or rethink" });
+  await expect(matrix.getByText("Stars", { exact: true }).last()).toBeVisible();
 });

@@ -12,6 +12,7 @@ from app import crud
 from app.api import Problem
 from app.inventory import service as inventory
 from app.menu.costing import Line, RecipeCost, cost_drivers, cost_recipes, line_unit_cost
+from app.menu.matrix import Dish, classify
 from app.menu.models import MenuItem, Recipe, RecipeLine
 from app.money import cents, percent
 
@@ -215,4 +216,37 @@ async def margin_watch(
             key=lambda i: -abs(i["change_pct"] or 0),
         ),
         "dishes": sorted(dishes, key=lambda d: -d["weekly_impact_cents"]),
+    }
+
+
+async def menu_matrix(
+    session: AsyncSession, days: int, units_sold: Mapping[UUID, Decimal]
+) -> dict[str, Any]:
+    """Every dish placed by plates sold and margin per plate. Dishes without a known cost
+    can't be placed (their margin is unknown, never assumed) and come back with kind null."""
+    report = await food_cost_report(session)
+    placed = [
+        Dish(
+            i["menu_item_id"],
+            units_sold.get(i["menu_item_id"], Decimal(0)),
+            Decimal(i["margin_cents"]),
+        )
+        for i in report
+        if i["margin_cents"] is not None
+    ]
+    matrix = classify(placed) if placed else None
+    return {
+        "days": days,
+        "popularity_bar": matrix and matrix.popularity_bar.quantize(Decimal("0.1")),
+        "margin_bar_cents": matrix and cents(matrix.margin_bar),
+        "dishes": [
+            {
+                "menu_item_id": i["menu_item_id"],
+                "name": i["name"],
+                "units_sold": units_sold.get(i["menu_item_id"], Decimal(0)),
+                "margin_cents": i["margin_cents"],
+                "kind": matrix.kinds.get(i["menu_item_id"]) if matrix else None,
+            }
+            for i in report
+        ],
     }

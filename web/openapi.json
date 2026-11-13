@@ -1450,6 +1450,56 @@
         }
       }
     },
+    "/v1/reports/menu-matrix": {
+      "get": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Menu Matrix",
+        "operationId": "menu_matrix_v1_reports_menu_matrix_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 28,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuMatrix"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/receipts/upload-url": {
       "post": {
         "tags": [
@@ -4364,6 +4414,60 @@
         "title": "MarginWatch",
         "description": "Ingredient price changes over the last `days` days and what they did to each dish."
       },
+      "MatrixDish": {
+        "properties": {
+          "menu_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Menu Item Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "units_sold": {
+            "type": "string",
+            "title": "Units Sold"
+          },
+          "margin_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Cents"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "star",
+                  "plowhorse",
+                  "puzzle",
+                  "dog"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "menu_item_id",
+          "name",
+          "units_sold",
+          "margin_cents",
+          "kind"
+        ],
+        "title": "MatrixDish"
+      },
       "Me": {
         "properties": {
           "restaurant": {
@@ -4574,6 +4678,52 @@
         },
         "type": "object",
         "title": "MenuItemUpdate"
+      },
+      "MenuMatrix": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "popularity_bar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Popularity Bar"
+          },
+          "margin_bar_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Bar Cents"
+          },
+          "dishes": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixDish"
+            },
+            "type": "array",
+            "title": "Dishes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "popularity_bar",
+          "margin_bar_cents",
+          "dishes"
+        ],
+        "title": "MenuMatrix",
+        "description": "Menu engineering: dishes by plates sold and margin per plate. The bars are the lines\nbetween the four kinds; null when nothing with a known cost sold in the period."
       },
       "OrderDetail": {
         "properties": {

@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
@@ -151,3 +151,21 @@ class MarginWatch(BaseModel):
     weekly_impact_cents: int
     ingredients: list[PriceChange]
     dishes: list[DishImpact]
+
+
+class MatrixDish(BaseModel):
+    menu_item_id: UUID
+    name: str
+    units_sold: Decimal
+    margin_cents: int | None
+    kind: Literal["star", "plowhorse", "puzzle", "dog"] | None
+
+
+class MenuMatrix(BaseModel):
+    """Menu engineering: dishes by plates sold and margin per plate. The bars are the lines
+    between the four kinds; null when nothing with a known cost sold in the period."""
+
+    days: int
+    popularity_bar: Decimal | None
+    margin_bar_cents: int | None
+    dishes: list[MatrixDish]

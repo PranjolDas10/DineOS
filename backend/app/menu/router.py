@@ -18,6 +18,7 @@ from app.menu.schemas import (
     MenuItemCreate,
     MenuItemOut,
     MenuItemUpdate,
+    MenuMatrix,
     RecipeCostOut,
     RecipeCreate,
     RecipeOut,
@@ -140,3 +141,9 @@ async def margin_watch(
     since = datetime.now(UTC) - timedelta(days=days)
     sold = await orders.units_sold(session, since)
     return await service.margin_watch(session, since, days, sold)
+
+
+@router.get("/reports/menu-matrix", response_model=MenuMatrix)
+async def menu_matrix(session: TenantSession, days: Annotated[int, Query(ge=1, le=90)] = 28) -> Any:
+    sold = await orders.units_sold(session, datetime.now(UTC) - timedelta(days=days))
+    return await service.menu_matrix(session, days, sold)

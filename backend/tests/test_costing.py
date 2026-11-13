@@ -218,3 +218,36 @@ async def menu_service_ids(session: Any) -> dict[str, UUID]:
     from app.menu import service as menu
 
     return await menu.menu_item_ids_by_name(session, {"Butter Chicken"})
+
+
+def test_menu_matrix_sorts_dishes_into_four_kinds() -> None:
+    from app.menu.matrix import Dish, classify
+
+    star, plow, puzzle, dog = (uuid.uuid4() for _ in range(4))
+    matrix = classify(
+        [
+            Dish(star, Decimal(40), Decimal(1200)),
+            Dish(plow, Decimal(50), Decimal(300)),
+            Dish(puzzle, Decimal(5), Decimal(1500)),
+            Dish(dog, Decimal(5), Decimal(200)),
+        ]
+    )
+    assert matrix is not None
+    # 100 plates over 4 dishes: an even share is 25, the bar is 70% of it.
+    assert matrix.popularity_bar == Decimal("17.5")
+    # (40*1200 + 50*300 + 5*1500 + 5*200) / 100 = 715 c per plate sold.
+    assert matrix.margin_bar == Decimal(715)
+    assert matrix.kinds == {star: "star", plow: "plowhorse", puzzle: "puzzle", dog: "dog"}
+    assert classify([Dish(star, Decimal(0), Decimal(1200))]) is None  # nothing sold
+
+
+async def test_menu_matrix_report_leaves_uncosted_dishes_unplaced(
+    client: AsyncClient, menu: tuple[dict[str, str], dict[str, str]]
+) -> None:
+    headers, _ = menu
+    report = (await client.get("/v1/reports/menu-matrix", headers=headers)).json()
+    # Nothing sold in this tenant: no bars, no kinds, but every dish is listed.
+    assert (report["popularity_bar"], report["margin_bar_cents"]) == (None, None)
+    kinds = {d["name"]: (d["margin_cents"], d["kind"]) for d in report["dishes"]}
+    assert kinds["Butter Chicken"] == (1652, None)
+    assert kinds["Mango Lassi"] == (None, None)

@@ -311,6 +311,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/menu-matrix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Menu Matrix */
+        get: operations["menu_matrix_v1_reports_menu_matrix_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/upload-url": {
         parameters: {
             query?: never;
@@ -1219,6 +1236,22 @@ export interface components {
             /** Dishes */
             dishes: components["schemas"]["DishImpact"][];
         };
+        /** MatrixDish */
+        MatrixDish: {
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Name */
+            name: string;
+            /** Units Sold */
+            units_sold: string;
+            /** Margin Cents */
+            margin_cents: number | null;
+            /** Kind */
+            kind: ("star" | "plowhorse" | "puzzle" | "dog") | null;
+        };
         /** Me */
         Me: {
             /** Restaurant */
@@ -1287,6 +1320,21 @@ export interface components {
             recipe_id?: string | null;
             /** Portion Qty */
             portion_qty?: number | string | null;
+        };
+        /**
+         * MenuMatrix
+         * @description Menu engineering: dishes by plates sold and margin per plate. The bars are the lines
+         *     between the four kinds; null when nothing with a known cost sold in the period.
+         */
+        MenuMatrix: {
+            /** Days */
+            days: number;
+            /** Popularity Bar */
+            popularity_bar: string | null;
+            /** Margin Bar Cents */
+            margin_bar_cents: number | null;
+            /** Dishes */
+            dishes: components["schemas"]["MatrixDish"][];
         };
         /** OrderDetail */
         OrderDetail: {
@@ -2854,6 +2902,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarginWatch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    menu_matrix_v1_reports_menu_matrix_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuMatrix"];
                 };
             };
             /** @description Validation Error */
