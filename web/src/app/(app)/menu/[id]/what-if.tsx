@@ -16,11 +16,13 @@ export function WhatIf({
   priceCents,
   costCents,
   weeklyPlates,
+  days,
   target,
 }: {
   priceCents: number;
   costCents: number;
   weeklyPlates: number;
+  days: number;
   target: number;
 }) {
   const [price, setPrice] = useState(priceCents);
@@ -28,6 +30,8 @@ export function WhatIf({
   // Selling under cost isn't a pricing question (unless that is today's price).
   const min = Math.min(Math.ceil(costCents / 25) * 25, priceCents);
   const max = Math.max(priceCents * 2, atTarget + 200);
+  // The slider moves in 25 cent steps from `min`. A price off that grid ($17.99) shows a
+  // thumb a few cents away until it is moved; the number beside it is always exact.
   const keeps = price - costCents;
   const delta = price - priceCents;
   const pct = (costCents / price) * 100;
@@ -72,7 +76,9 @@ export function WhatIf({
             </button>
           </div>
         </div>
-        <dl aria-live="polite" className="grid grid-cols-2 content-start gap-x-4 gap-y-4">
+        {/* No live region: the slider already announces its value, and reading four
+            figures on every step would drown it out. */}
+        <dl className="grid grid-cols-2 content-start gap-x-4 gap-y-4">
           <div>
             <dt className="eyebrow">Keeps per plate</dt>
             <dd className="text-xl font-semibold tabular-nums">{money(keeps)}</dd>
@@ -84,11 +90,20 @@ export function WhatIf({
             </dd>
           </div>
           <div className="col-span-2 border-t border-line pt-4">
-            <dt className="eyebrow">A week, if it sells the same {Math.round(weeklyPlates)} plates</dt>
-            <dd className={`text-xl font-semibold tabular-nums ${weekly > 0 ? "text-ok" : weekly < 0 ? "text-danger" : ""}`}>
-              {weekly === 0 ? "No change" : `${weekly > 0 ? "+" : "−"}${moneyWhole(Math.abs(weekly))} kept`}
-            </dd>
-            <dd className="text-sm text-fg-muted">A higher price usually sells a few fewer plates, so read this as the best case.</dd>
+            {weeklyPlates === 0 ? (
+              <>
+                <dt className="eyebrow">A week</dt>
+                <dd className="text-sm text-fg-muted">None sold in the last {days} days, so there is no pace to project from.</dd>
+              </>
+            ) : (
+              <>
+                <dt className="eyebrow">A week, if it sells the same {Math.max(Math.round(weeklyPlates), 1)} plates</dt>
+                <dd className={`text-xl font-semibold tabular-nums ${weekly > 0 ? "text-ok" : weekly < 0 ? "text-danger" : ""}`}>
+                  {weekly === 0 ? "No change" : `${weekly > 0 ? "+" : "−"}${moneyWhole(Math.abs(weekly))} kept`}
+                </dd>
+                <dd className="text-sm text-fg-muted">A higher price usually sells a few fewer plates, so read this as the best case.</dd>
+              </>
+            )}
           </div>
         </dl>
       </div>

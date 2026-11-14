@@ -36,7 +36,12 @@ export default async function DishPage({ params }: PageProps<"/menu/[id]">) {
   const placed = matrix.dishes.find((d) => d.menu_item_id === dish.menu_item_id);
   const sold = Number(placed?.units_sold ?? 0);
   const unpriced = [...new Set(dish.ingredients.filter((i) => i.cost_cents === null).map((i) => i.name))];
-  const top = dish.ingredients.find((i) => i.share_pct !== null);
+  // The headline is per ingredient: butter used directly and butter in the gravy count once.
+  const shares = new Map<string, number>();
+  for (const i of dish.ingredients) {
+    if (i.share_pct !== null) shares.set(i.name, (shares.get(i.name) ?? 0) + Number(i.share_pct));
+  }
+  const [top] = [...shares].sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="rise mx-auto grid max-w-6xl gap-6 [&>*]:min-w-0">
@@ -102,7 +107,7 @@ export default async function DishPage({ params }: PageProps<"/menu/[id]">) {
             <p className="eyebrow">Down to raw ingredients</p>
             <h2 id="plate" className="text-xl font-semibold text-balance">
               {top
-                ? `${top.name} is ${Number(top.share_pct).toFixed(0)}% of what this plate costs.`
+                ? `${top[0]} is ${top[1].toFixed(0)}% of what this plate costs.`
                 : "What goes into a plate"}
             </h2>
             <p className="text-sm text-fg-muted">
@@ -181,8 +186,9 @@ export default async function DishPage({ params }: PageProps<"/menu/[id]">) {
         </section>
       )}
 
-      {dish.cost_cents !== null && dish.cost_cents > 0 && (
-        <WhatIf priceCents={dish.price_cents} costCents={dish.cost_cents} weeklyPlates={(sold * 7) / matrix.days} target={TARGET} />
+      {/* A free dish has no food cost % to steer by, so there is nothing to calculate. */}
+      {dish.cost_cents !== null && dish.cost_cents > 0 && dish.price_cents > 0 && (
+        <WhatIf priceCents={dish.price_cents} costCents={dish.cost_cents} weeklyPlates={(sold * 7) / matrix.days} days={matrix.days} target={TARGET} />
       )}
     </div>
   );
