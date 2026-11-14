@@ -19,8 +19,8 @@ export default async function ReviewPage({ params }: PageProps<"/receipts/[id]">
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6 [&>*]:min-w-0">
-      <Link href="/receipts" className="inline-flex min-h-11 w-fit items-center gap-1 font-medium text-primary-text">
-        <ChevronLeft aria-hidden className="size-5" />
+      <Link href="/receipts" className="inline-flex min-h-8 w-fit items-center gap-1 rounded-sm text-sm font-medium text-fg-muted transition-colors hover:text-fg">
+        <ChevronLeft aria-hidden className="size-4" />
         Receipts
       </Link>
       {receipt.status === "parsed" ? (

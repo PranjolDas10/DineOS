@@ -5,7 +5,8 @@ export default defineConfig({
   testDir: "e2e",
   fullyParallel: false, // the review test changes shared demo data
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },
+  // Reduced motion turns the entrance animations off, so axe never samples a half-faded page.
+  use: { baseURL: "http://localhost:3000", trace: "retain-on-failure", reducedMotion: "reduce" },
   projects: [
     // Signs in once: the API rate-limits logins per account (5 at once, then 1 a minute).
     { name: "setup", testMatch: /auth\.setup\.ts/ },

@@ -1,7 +1,10 @@
+from datetime import date, datetime
 from typing import Annotated, Any
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, StringConstraints
+from sqlalchemy import text
 
 from app import ratelimit
 from app.auth import service
@@ -44,3 +47,27 @@ async def refresh(body: RefreshIn) -> Any:
 async def logout(body: RefreshIn) -> Response:
     await service.logout(body.refresh_token)
     return Response(status_code=204)
+
+
+class Me(BaseModel):
+    restaurant: str
+    timezone: str
+    # The restaurant's local date: "the last 7 days" must not depend on where a server runs.
+    today: date
+    email: str | None
+
+
+@router.get("/me", response_model=Me)
+async def me(session: service.TenantSession, claims: service.Claims) -> Any:
+    """Who is signed in, and the restaurant's clock. RLS limits both queries to the caller's
+    tenant, so neither needs a tenant filter."""
+    name, timezone = (await session.execute(text("SELECT name, timezone FROM tenants"))).one()
+    email = await session.scalar(
+        text("SELECT email FROM users WHERE id = :id"), {"id": claims["sub"]}
+    )
+    return {
+        "restaurant": name,
+        "timezone": timezone,
+        "today": datetime.now(ZoneInfo(timezone)).date(),
+        "email": email,
+    }

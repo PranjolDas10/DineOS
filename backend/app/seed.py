@@ -4,12 +4,15 @@
     docker compose run --rm migrate python -m app.seed
 
 Everything here is invented sample data, never real restaurant numbers. Dates are relative to
-today, so the demo always shows the last four weeks. Refuses to run twice for the same email.
+today, so the demo shows the last four weeks as of the day it was seeded. Refuses to run twice
+for the same email unless --reset is given, which deletes the demo restaurant first (the public
+demo reseeds nightly so its "last 7 days" never goes empty).
 """
 
 import asyncio
 import os
 import random
+import sys
 import uuid
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
@@ -19,7 +22,8 @@ from zoneinfo import ZoneInfo
 
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from app import jobs, storage
 from app.auth.cli import create_owner
@@ -105,15 +109,48 @@ STAFF = {
 }
 
 
-async def seed(password: str) -> None:
+async def _delete_tenant(conn: AsyncConnection, tenant_id: uuid.UUID) -> None:
+    """Delete one tenant and all its rows, as the owner role. Tables are found by their
+    tenant_id column and deleted in passes: a table whose rows are still referenced fails its
+    foreign key, rolls back to a savepoint and is retried after its children are gone, so there
+    is no hand-kept deletion order to forget when a table is added."""
+    tables = list(
+        await conn.scalars(
+            text(
+                "SELECT table_name FROM information_schema.columns"
+                " WHERE table_schema = 'public' AND column_name = 'tenant_id'"
+            )
+        )
+    )
+    while tables:
+        blocked = []
+        for table in tables:
+            try:
+                async with conn.begin_nested():
+                    await conn.execute(
+                        text(f'DELETE FROM "{table}" WHERE tenant_id = :t'), {"t": tenant_id}
+                    )
+            except IntegrityError:
+                blocked.append(table)
+        if len(blocked) == len(tables):
+            raise RuntimeError(f"Can't delete tenant rows from: {', '.join(blocked)}")
+        tables = blocked
+    await conn.execute(text("DELETE FROM tenants WHERE id = :t"), {"t": tenant_id})
+
+
+async def seed(password: str, reset: bool = False) -> None:
     rng = random.Random(7)  # same demo every run
     tz = ZoneInfo(TZ)
     today = datetime.now(tz).date()
     owner = create_async_engine(MigrationSettings().migration_database_url)
-    async with owner.connect() as conn:
-        if await conn.scalar(text("SELECT 1 FROM users WHERE email = :e"), {"e": EMAIL}):
-            await owner.dispose()
-            raise SystemExit(f"{EMAIL} already exists; the demo is already seeded.")
+    async with owner.begin() as conn:
+        existing = await conn.scalar(
+            text("SELECT tenant_id FROM users WHERE email = :e"), {"e": EMAIL}
+        )
+        if existing and not reset:
+            raise SystemExit(f"{EMAIL} already exists; pass --reset to reseed the demo.")
+        if existing:
+            await _delete_tenant(conn, existing)
     await owner.dispose()
     await create_owner("Curry Original (demo)", EMAIL, password, TZ)
     async with SessionLocal() as session:
@@ -170,7 +207,8 @@ async def seed(password: str) -> None:
             await call("PUT", f"/v1/channel-fees/{channel}", {"commission_bps": bps})
         for name, (rate, (start, end)) in STAFF.items():
             staff = await call("POST", "/v1/staff", {"name": name, "hourly_rate_cents": rate})
-            for d in range(DAYS):
+            # Past four weeks plus the week ahead, so the schedule page has a full grid.
+            for d in range(-7, DAYS):
                 day = today - timedelta(days=d)
                 await call(
                     "POST",
@@ -321,4 +359,6 @@ def _order(rng: random.Random, n: int, channel: str, day: date, tz: ZoneInfo) ->
 
 
 if __name__ == "__main__":
-    asyncio.run(seed(os.environ.get("DINEOS_PASSWORD", "demo-password-123")))
+    asyncio.run(
+        seed(os.environ.get("DINEOS_PASSWORD", "demo-password-123"), reset="--reset" in sys.argv)
+    )

@@ -203,6 +203,18 @@ async def test_profit_by_channel_and_dish_with_a_correction(
             "profit_cents": -2165,
         },
     ]
+    # One row per day in the range; the day's numbers are the channels added up.
+    assert report["daily"] == [
+        {
+            "date": "2026-10-20",
+            "revenue_cents": 6594,
+            "commission_cents": 540,
+            "food_cost_cents": 450,
+            "gross_profit_cents": 5604,
+            "labor_cents": 12000,
+            "profit_cents": -6396,
+        }
+    ]
     assert [(d["name"], d["revenue_cents"], d["food_cost_cents"]) for d in report["dishes"]] == [
         ("Butter Chicken", 5397, 450),
         ("Unmapped items", 1197, 0),

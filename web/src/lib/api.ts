@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import createClient from "openapi-fetch";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -33,3 +34,7 @@ export function must<T>(result: { data?: T; error?: unknown; response: Response 
   }
   return result.data;
 }
+
+/** The signed-in restaurant and its local date. React's cache() makes it one request per page
+ * render, however many components (the layout, the page) ask. */
+export const me = cache(async () => must(await (await api()).GET("/v1/auth/me")));

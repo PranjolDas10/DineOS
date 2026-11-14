@@ -68,3 +68,14 @@ test("the schedule refuses an overlap, explains it, then adds and deletes a shif
   await change.getByRole("button", { name: "Yes, delete it" }).click();
   await expect(added).toBeHidden();
 });
+
+test("the command menu jumps to a page from the keyboard", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Control+k");
+  const menu = page.getByRole("dialog", { name: "Command menu" });
+  await expectAccessible(page);
+  await menu.getByRole("combobox").fill("sched");
+  await expect(menu.getByRole("option")).toHaveCount(1);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/schedule$/);
+});

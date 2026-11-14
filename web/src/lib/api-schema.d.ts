@@ -55,6 +55,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Me
+         * @description Who is signed in, and the restaurant's clock. RLS limits both queries to the caller's
+         *     tenant, so neither needs a tenant filter.
+         */
+        get: operations["me_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/suppliers": {
         parameters: {
             query?: never;
@@ -896,6 +917,26 @@ export interface components {
             /** Base Qty */
             base_qty?: number | string | null;
         };
+        /** DayProfit */
+        DayProfit: {
+            /** Revenue Cents */
+            revenue_cents: number;
+            /** Commission Cents */
+            commission_cents: number;
+            /** Food Cost Cents */
+            food_cost_cents: number;
+            /** Gross Profit Cents */
+            gross_profit_cents: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Labor Cents */
+            labor_cents: number;
+            /** Profit Cents */
+            profit_cents: number;
+        };
         /** DishProfit */
         DishProfit: {
             /** Revenue Cents */
@@ -1104,6 +1145,20 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** Me */
+        Me: {
+            /** Restaurant */
+            restaurant: string;
+            /** Timezone */
+            timezone: string;
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+            /** Email */
+            email: string | null;
         };
         /** MenuItemCreate */
         MenuItemCreate: {
@@ -1348,6 +1403,8 @@ export interface components {
             labor_cents: number;
             /** Sales With Unknown Food Cost */
             sales_with_unknown_food_cost: number;
+            /** Daily */
+            daily: components["schemas"]["DayProfit"][];
             /** Channels */
             channels: components["schemas"]["ChannelProfit"][];
             /** Dishes */
@@ -1943,6 +2000,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
                 };
             };
         };

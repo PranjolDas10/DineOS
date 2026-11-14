@@ -43,9 +43,16 @@ class DishProfit(ProfitRow):
     name: str
 
 
+class DayProfit(ProfitRow):
+    date: date
+    labor_cents: int
+    profit_cents: int
+
+
 class ProfitReport(BaseModel):
     labor_cents: int
     sales_with_unknown_food_cost: int
+    daily: list[DayProfit]
     channels: list[ChannelProfit]
     dishes: list[DishProfit]
 

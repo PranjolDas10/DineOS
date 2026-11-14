@@ -2,34 +2,54 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText } from "lucide-react";
+import { CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText, type LucideIcon } from "lucide-react";
 
-const LINKS = [
-  { href: "/", label: "Profit", icon: ChartNoAxesColumn },
-  { href: "/receipts", label: "Receipts", icon: ReceiptText },
-  { href: "/menu", label: "Menu costs", icon: CookingPot },
-  { href: "/schedule", label: "Schedule", icon: CalendarDays },
+export type Destination = { href: string; label: string; icon: LucideIcon; hint: string };
+
+// One list feeds the sidebar and the command menu, so they can't drift apart.
+export const GROUPS: { title: string; links: Destination[] }[] = [
+  {
+    title: "Insights",
+    links: [
+      { href: "/", label: "Profit", icon: ChartNoAxesColumn, hint: "Sales, costs and what is left" },
+      { href: "/menu", label: "Menu costs", icon: CookingPot, hint: "Food cost of every dish" },
+    ],
+  },
+  {
+    title: "Operations",
+    links: [
+      { href: "/receipts", label: "Receipts", icon: ReceiptText, hint: "Review scanned supplier receipts" },
+      { href: "/schedule", label: "Schedule", icon: CalendarDays, hint: "Shifts and labor for the week" },
+    ],
+  },
 ];
 
 export function Nav() {
   const pathname = usePathname();
   return (
-    <ul className="flex gap-1 lg:grid">
-      {LINKS.map(({ href, label, icon: Icon }) => {
-        const current = href === "/" ? pathname === "/" : pathname.startsWith(href);
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              aria-current={current ? "page" : undefined}
-              className="relative flex min-h-11 items-center gap-3 rounded-md px-3 font-medium text-fg-muted hover:bg-surface-sunken hover:text-fg aria-[current=page]:bg-surface aria-[current=page]:text-fg aria-[current=page]:shadow-[inset_3px_0_0_var(--primary)]"
-            >
-              <Icon aria-hidden className="size-5" />
-              {label}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex gap-1 overflow-x-auto lg:grid lg:gap-5 lg:overflow-visible">
+      {GROUPS.map((group) => (
+        <div key={group.title} className="contents lg:block">
+          <p className="mb-1 hidden px-2.5 text-xs font-medium text-fg-muted lg:block">{group.title}</p>
+          <ul className="flex gap-1 lg:grid lg:gap-0.5">
+            {group.links.map(({ href, label, icon: Icon }) => {
+              const current = href === "/" ? pathname === "/" : pathname.startsWith(href);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    aria-current={current ? "page" : undefined}
+                    className="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-fg-muted transition-colors hover:bg-surface-sunken hover:text-fg aria-[current=page]:bg-surface-sunken aria-[current=page]:text-fg"
+                  >
+                    <Icon aria-hidden className="size-4" />
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }

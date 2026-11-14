@@ -48,6 +48,19 @@ async def test_login_then_access_token_works(client: AsyncClient, owner_email: s
     assert (await client.get("/v1/suppliers", headers=bearer)).status_code == 200
 
 
+async def test_me_names_the_restaurant_and_its_local_date(
+    client: AsyncClient, owner_email: str
+) -> None:
+    tokens = await login(client, owner_email)
+    resp = await client.get(
+        "/v1/auth/me", headers={"Authorization": f"Bearer {tokens['access_token']}"}
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert (body["restaurant"], body["timezone"], body["email"]) == ("test", "UTC", owner_email)
+    assert body["today"] == datetime.now(UTC).date().isoformat()
+
+
 async def test_bad_credentials_look_identical(client: AsyncClient, owner_email: str) -> None:
     wrong_pw = await client.post("/v1/auth/login", json={"email": owner_email, "password": "nope"})
     no_user = await client.post(

@@ -9,7 +9,7 @@ export function LoginForm({ demo }: { demo: boolean }) {
   const [error, action, pending] = useActionState(login, null);
   return (
     <form action={action} className="mt-8 grid gap-5" aria-describedby={error ? "login-error" : undefined}>
-      <label className="grid gap-1.5 font-medium">
+      <label className="grid gap-1.5 text-sm font-medium">
         Email
         <input
           name="email"
@@ -20,7 +20,7 @@ export function LoginForm({ demo }: { demo: boolean }) {
           className="field"
         />
       </label>
-      <label className="grid gap-1.5 font-medium">
+      <label className="grid gap-1.5 text-sm font-medium">
         Password
         <input
           name="password"
