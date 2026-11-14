@@ -5,7 +5,7 @@ type Matrix = Schemas["MenuMatrix"];
 type Kind = NonNullable<Schemas["MatrixDish"]["kind"]>;
 
 // What to do with each kind: the reason the matrix exists.
-const KINDS: Record<Kind, { title: string; rule: string; advice: string }> = {
+export const KINDS: Record<Kind, { title: string; rule: string; advice: string }> = {
   star: { title: "Stars", rule: "Sell well, earn well", advice: "Protect them. Keep the recipe and the price steady." },
   plowhorse: { title: "Plowhorses", rule: "Sell well, earn little", advice: "Raise the price a little or trim the portion cost." },
   puzzle: { title: "Puzzles", rule: "Earn well, sell little", advice: "Sell them harder: menu position, a server mention." },

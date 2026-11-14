@@ -10,6 +10,7 @@ from app.auth.service import TenantSession
 from app.menu import service
 from app.menu.models import MenuItem, Recipe
 from app.menu.schemas import (
+    DishCost,
     FoodCostReport,
     LineIn,
     LineOut,
@@ -125,6 +126,11 @@ async def update_menu_item(
 @router.get("/recipes/{recipe_id}/cost", response_model=RecipeCostOut)
 async def get_recipe_cost(recipe_id: UUID, session: TenantSession) -> Any:
     return await service.recipe_cost(session, recipe_id)
+
+
+@router.get("/menu-items/{item_id}/cost", response_model=DishCost)
+async def get_dish_cost(item_id: UUID, session: TenantSession) -> Any:
+    return await service.dish_cost(session, item_id)
 
 
 @router.get("/reports/food-cost", response_model=FoodCostReport)
