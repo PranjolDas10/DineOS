@@ -4,6 +4,9 @@ import { CircleCheck, CircleHelp, TriangleAlert } from "lucide-react";
 import { api, must, type Schemas } from "@/lib/api";
 import { money } from "@/lib/format";
 
+import { MenuMatrix } from "./matrix";
+import { PriceWatch } from "./price-watch";
+
 export const metadata: Metadata = { title: "Menu costs" };
 
 // shortcut: fixed 30% target, the common rule of thumb; make it owner-editable when they ask.
@@ -12,7 +15,11 @@ const TARGET = 30;
 // Owner at night: which dishes cost too much to make, and which have no cost at all yet.
 export default async function MenuCostsPage() {
   const client = await api();
-  const { items } = must(await client.GET("/v1/reports/food-cost"));
+  const [{ items }, watch, matrix] = await Promise.all([
+    client.GET("/v1/reports/food-cost").then(must),
+    client.GET("/v1/reports/margin-watch").then(must),
+    client.GET("/v1/reports/menu-matrix").then(must),
+  ]);
   // Worst first: unknown cost, then highest food cost %.
   const rows = items.toSorted(
     (a, b) => Number(b.food_cost_pct ?? Infinity) - Number(a.food_cost_pct ?? Infinity),
@@ -51,6 +58,8 @@ export default async function MenuCostsPage() {
               </div>
             ))}
           </dl>
+          <PriceWatch watch={watch} />
+          <MenuMatrix matrix={matrix} />
           <div className="panel overflow-x-auto">
             <table className="data-table">
               <thead>

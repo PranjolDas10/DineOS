@@ -73,3 +73,33 @@ def line_unit_cost(
         return unit_costs.get(line.ingredient_id)
     assert line.sub_recipe_id is not None
     return costs[line.sub_recipe_id].per_unit
+
+
+def cost_drivers(
+    yields: Mapping[UUID, Decimal],
+    lines: Mapping[UUID, Sequence[Line]],
+    before: Mapping[UUID, Decimal],
+    after: Mapping[UUID, Decimal],
+) -> dict[UUID, dict[UUID, Decimal]]:
+    """Which ingredient moved which recipe's cost, and by how much: recipe -> {ingredient ->
+    change in cents per yield unit} between two sets of prices.
+
+    A recipe's cost is a sum of quantity x price, so it is linear in every price. That makes
+    the split exact: change one price at a time, measure the difference, and the differences
+    add up to the whole move. No estimate and no ordering effects (unlike costs that multiply).
+
+    Only ingredients priced in both sets count; a first-ever price turns "unknown" into a
+    number, which is not a change.
+    ponytail: one full re-cost per changed ingredient. Fine for tens of price changes; if it
+    ever matters, flatten each recipe to ingredient quantities once and take dot products."""
+    base = cost_recipes(yields, lines, before)
+    drivers: dict[UUID, dict[UUID, Decimal]] = {}
+    for ingredient_id, price in after.items():
+        if before.get(ingredient_id, price) == price:
+            continue
+        moved = cost_recipes(yields, lines, {**before, ingredient_id: price})
+        for recipe_id, cost in moved.items():
+            was = base[recipe_id].per_unit
+            if cost.per_unit is not None and was is not None and cost.per_unit != was:
+                drivers.setdefault(recipe_id, {})[ingredient_id] = cost.per_unit - was
+    return drivers

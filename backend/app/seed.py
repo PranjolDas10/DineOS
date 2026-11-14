@@ -26,6 +26,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 
 from app import jobs, storage
+from app.alerts import service as alerts
 from app.auth.cli import create_owner
 from app.auth.tokens import issue_access
 from app.config import MigrationSettings
@@ -56,6 +57,15 @@ INGREDIENTS = {
     "Flour": ("g", 22680, 4180),
     "Basmati rice": ("g", 9072, 4620),
     "Mango pulp": ("ml", 850, 990),
+}
+# Supplier prices that moved since: name -> (days ago, new pack_price_cents). The menu costs
+# page shows what each did to the dishes that use it.
+PRICE_MOVES = {
+    "Lamb shoulder": (16, 15490),  # +10%
+    "Paneer": (11, 4520),  # +8%
+    "Butter": (8, 2490),  # +19%
+    "Chicken thigh": (5, 11400),  # +8%
+    "Onion": (3, 5150),  # -10%
 }
 # name: (yield_qty, yield_unit, [(ingredient or sub-recipe, qty)]); sub-recipes come first
 RECIPES: dict[str, tuple[int, str, list[tuple[str, int]]]] = {
@@ -164,7 +174,14 @@ async def seed(password: str, reset: bool = False) -> None:
     ) as api:
 
         async def call(method: str, url: str, body: Any, **h: str) -> Any:
-            resp = await api.request(method, url, json=body, headers=h)
+            # The seed goes through the real API, so the per-tenant rate limit applies to it
+            # too. On a fast machine it outruns the bucket: wait as told, then carry on.
+            while True:
+                resp = await api.request(method, url, json=body, headers=h)
+                if resp.status_code != 429:
+                    break
+                # The server says how long; there is no local event to wait on instead.
+                await asyncio.sleep(int(resp.headers["Retry-After"]))
             resp.raise_for_status()
             return resp.json()
 
@@ -173,11 +190,20 @@ async def seed(password: str, reset: bool = False) -> None:
             ids[name] = (await call("POST", "/v1/ingredients", {"name": name, "base_unit": unit}))[
                 "id"
             ]
+            prices = f"/v1/ingredients/{ids[name]}/prices"
+            # The starting price predates the demo window; some then move inside it.
             await call(
                 "POST",
-                f"/v1/ingredients/{ids[name]}/prices",
-                {"pack_qty": qty, "pack_price_cents": cents},
+                prices,
+                {"pack_qty": qty, "pack_price_cents": cents, "observed_at": _days_ago(DAYS + 14)},
             )
+            if name in PRICE_MOVES:
+                ago, moved = PRICE_MOVES[name]
+                await call(
+                    "POST",
+                    prices,
+                    {"pack_qty": qty, "pack_price_cents": moved, "observed_at": _days_ago(ago)},
+                )
         for name, (yqty, yunit, lines) in RECIPES.items():
             recipe = await call(
                 "POST", "/v1/recipes", {"name": name, "yield_qty": yqty, "yield_unit": yunit}
@@ -236,6 +262,17 @@ async def seed(password: str, reset: bool = False) -> None:
     while await jobs.run_once(["post_order"]) is not None:
         pass
     await _seed_receipts(tenant, today)
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, tenant)
+        # What confirming a receipt writes when a price moved (see receipts/review.py).
+        for name, pct in (("Butter", 19), ("Chicken thigh", 8)):
+            await alerts.notify(
+                session,
+                "price_change",
+                f"{name} is up {pct}%",
+                "From the Restaurant Depot receipt you just checked."
+                " Menu costs shows which dishes it changes.",
+            )
     print(f"Seeded {n} orders over {DAYS} days and {len(RECEIPTS)} receipts. Log in as {EMAIL}.")
 
 
@@ -323,6 +360,10 @@ def _receipt_svg(
         f'<g font-family="Courier New, monospace" font-size="15" fill="#2b2b2b"'
         f' style="white-space:pre">{text_rows}</g></svg>'
     ).encode()
+
+
+def _days_ago(days: int) -> str:
+    return (datetime.now(ZoneInfo("UTC")) - timedelta(days=days)).isoformat()
 
 
 def _at(day: date, hhmm: str, tz: ZoneInfo) -> str:

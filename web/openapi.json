@@ -1399,6 +1399,107 @@
         ]
       }
     },
+    "/v1/reports/margin-watch": {
+      "get": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Margin Watch",
+        "description": "Composed here, not in menu.service: sales volume belongs to orders, and orders.service\nalready imports menu.service, so the service can't import it back.",
+        "operationId": "margin_watch_v1_reports_margin_watch_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 28,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarginWatch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reports/menu-matrix": {
+      "get": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Menu Matrix",
+        "operationId": "menu_matrix_v1_reports_menu_matrix_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 28,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuMatrix"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/receipts/upload-url": {
       "post": {
         "tags": [
@@ -3459,6 +3560,30 @@
         ],
         "title": "ConfirmLine"
       },
+      "CostDriver": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ingredient Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "delta_cents": {
+            "type": "integer",
+            "title": "Delta Cents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "name",
+          "delta_cents"
+        ],
+        "title": "CostDriver"
+      },
       "DayProfit": {
         "properties": {
           "revenue_cents": {
@@ -3502,6 +3627,82 @@
           "profit_cents"
         ],
         "title": "DayProfit"
+      },
+      "DishImpact": {
+        "properties": {
+          "menu_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Menu Item Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_cents": {
+            "type": "integer",
+            "title": "Price Cents"
+          },
+          "cost_before_cents": {
+            "type": "integer",
+            "title": "Cost Before Cents"
+          },
+          "cost_after_cents": {
+            "type": "integer",
+            "title": "Cost After Cents"
+          },
+          "food_cost_pct_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Cost Pct Before"
+          },
+          "food_cost_pct_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Cost Pct After"
+          },
+          "units_sold": {
+            "type": "string",
+            "title": "Units Sold"
+          },
+          "weekly_impact_cents": {
+            "type": "integer",
+            "title": "Weekly Impact Cents"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/CostDriver"
+            },
+            "type": "array",
+            "title": "Drivers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "menu_item_id",
+          "name",
+          "price_cents",
+          "cost_before_cents",
+          "cost_after_cents",
+          "food_cost_pct_before",
+          "food_cost_pct_after",
+          "units_sold",
+          "weekly_impact_cents",
+          "drivers"
+        ],
+        "title": "DishImpact"
       },
       "DishProfit": {
         "properties": {
@@ -4178,6 +4379,95 @@
         ],
         "title": "LoginIn"
       },
+      "MarginWatch": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "weekly_impact_cents": {
+            "type": "integer",
+            "title": "Weekly Impact Cents"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/PriceChange"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "dishes": {
+            "items": {
+              "$ref": "#/components/schemas/DishImpact"
+            },
+            "type": "array",
+            "title": "Dishes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "weekly_impact_cents",
+          "ingredients",
+          "dishes"
+        ],
+        "title": "MarginWatch",
+        "description": "Ingredient price changes over the last `days` days and what they did to each dish."
+      },
+      "MatrixDish": {
+        "properties": {
+          "menu_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Menu Item Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "units_sold": {
+            "type": "string",
+            "title": "Units Sold"
+          },
+          "margin_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Cents"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "star",
+                  "plowhorse",
+                  "puzzle",
+                  "dog"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "menu_item_id",
+          "name",
+          "units_sold",
+          "margin_cents",
+          "kind"
+        ],
+        "title": "MatrixDish"
+      },
       "Me": {
         "properties": {
           "restaurant": {
@@ -4388,6 +4678,52 @@
         },
         "type": "object",
         "title": "MenuItemUpdate"
+      },
+      "MenuMatrix": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "popularity_bar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Popularity Bar"
+          },
+          "margin_bar_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Bar Cents"
+          },
+          "dishes": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixDish"
+            },
+            "type": "array",
+            "title": "Dishes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "popularity_bar",
+          "margin_bar_cents",
+          "dishes"
+        ],
+        "title": "MenuMatrix",
+        "description": "Menu engineering: dishes by plates sold and margin per plate. The bars are the lines\nbetween the four kinds; null when nothing with a known cost sold in the period."
       },
       "OrderDetail": {
         "properties": {
@@ -4824,6 +5160,56 @@
           "next_cursor"
         ],
         "title": "Page[TemplateOut]"
+      },
+      "PriceChange": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ingredient Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "base_unit": {
+            "$ref": "#/components/schemas/BaseUnit"
+          },
+          "unit_cents_before": {
+            "type": "string",
+            "title": "Unit Cents Before"
+          },
+          "unit_cents_after": {
+            "type": "string",
+            "title": "Unit Cents After"
+          },
+          "change_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Pct"
+          },
+          "dishes_affected": {
+            "type": "integer",
+            "title": "Dishes Affected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "name",
+          "base_unit",
+          "unit_cents_before",
+          "unit_cents_after",
+          "change_pct",
+          "dishes_affected"
+        ],
+        "title": "PriceChange"
       },
       "PriceCreate": {
         "properties": {

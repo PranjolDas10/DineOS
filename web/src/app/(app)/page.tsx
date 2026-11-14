@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight, TriangleAlert } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Tags, TriangleAlert } from "lucide-react";
 
 import { api, me, must, type Schemas } from "@/lib/api";
 import { dayRange, moneyWhole, percent } from "@/lib/format";
@@ -40,9 +40,10 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
   const range = (a: string, b: string) => ({ params: { query: { from: a, to: b } } });
 
   // The same window one period earlier, for the "vs previous" changes.
-  const [report, before] = await Promise.all([
+  const [report, before, watch] = await Promise.all([
     client.GET("/v1/reports/profit", range(from, to)).then(must),
     client.GET("/v1/reports/profit", range(addDays(from, -days), addDays(from, -1))).then(must),
+    client.GET("/v1/reports/margin-watch", { params: { query: { days } } }).then(must),
   ]);
   const now = totals(report);
   const prev = totals(before);
@@ -161,6 +162,26 @@ export default async function ProfitPage({ searchParams }: PageProps<"/">) {
             ))}
           </dl>
         </>
+      )}
+
+      {watch.weekly_impact_cents !== 0 && (
+        <Link
+          href="/menu"
+          className="panel flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-4 transition-colors hover:border-line-strong"
+        >
+          <Tags aria-hidden className="size-4 text-fg-muted" />
+          <span className="font-medium">
+            Ingredient prices are {watch.weekly_impact_cents > 0 ? "costing" : "saving"} about{" "}
+            {moneyWhole(Math.abs(watch.weekly_impact_cents))} {watch.weekly_impact_cents > 0 && "more "}a week
+          </span>
+          <span className="text-fg-muted">
+            than {days} days ago, across {watch.dishes.length} {watch.dishes.length === 1 ? "dish" : "dishes"}.
+          </span>
+          <span className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-accent-text">
+            See which
+            <ArrowRight aria-hidden className="size-4" />
+          </span>
+        </Link>
       )}
 
       {report.channels.length > 0 && (

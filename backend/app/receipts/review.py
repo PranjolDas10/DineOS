@@ -18,6 +18,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
+from app.alerts import service as alerts
 from app.api import Problem
 from app.inventory import service as inventory
 from app.receipts.models import Receipt, ReceiptLine
@@ -27,6 +28,10 @@ from app.receipts.models import Receipt, ReceiptLine
 CONFIDENCE_THRESHOLD = Decimal("0.80")
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+
+# A price that moved at least this much against the last one raises an alert.
+# ponytail: fixed threshold; make it owner-editable if 5% turns out noisy or deaf.
+PRICE_ALERT_PCT = Decimal(5)
 
 
 class ConfirmLine(BaseModel):
@@ -89,19 +94,35 @@ async def confirm(
         if body.receipt_date
         else datetime.now(UTC)
     )
+    moved: list[tuple[UUID, Decimal]] = []  # ingredients whose current price changed
     for decision in body.lines:
         line = lines[decision.line_id]
         line.ingredient_id = decision.ingredient_id
         line.description, line.quantity = decision.description, decision.quantity
         line.unit, line.line_total_cents = decision.unit, decision.line_total_cents
         if decision.ingredient_id is not None and decision.base_qty is not None:
-            await inventory.record_price(
+            replaced = await inventory.record_price(
                 session,
                 decision.ingredient_id,
                 body.supplier_id,
                 pack_qty=decision.base_qty,
                 pack_price_cents=decision.line_total_cents,
                 observed_at=observed_at,
+            )
+            if replaced:
+                change = (decision.line_total_cents / decision.base_qty - replaced) * 100 / replaced
+                if abs(change) >= PRICE_ALERT_PCT:
+                    moved.append((decision.ingredient_id, change))
+    if moved:
+        labels = await inventory.ingredient_labels(session)
+        for ingredient_id, change in moved:
+            await alerts.notify(
+                session,
+                "price_change",
+                f"{labels[ingredient_id][0]} is {'up' if change > 0 else 'down'}"
+                f" {abs(change):.0f}%",
+                f"From the {body.supplier_name or 'supplier'} receipt you just checked."
+                " Menu costs shows which dishes it changes.",
             )
 
     await session.execute(

@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
@@ -113,3 +113,59 @@ class FoodCostItem(BaseModel):
 
 class FoodCostReport(BaseModel):
     items: list[FoodCostItem]
+
+
+class PriceChange(BaseModel):
+    ingredient_id: UUID
+    name: str
+    base_unit: BaseUnit
+    unit_cents_before: Decimal
+    unit_cents_after: Decimal
+    change_pct: Decimal | None
+    dishes_affected: int
+
+
+class CostDriver(BaseModel):
+    ingredient_id: UUID
+    name: str
+    delta_cents: int
+
+
+class DishImpact(BaseModel):
+    menu_item_id: UUID
+    name: str
+    price_cents: int
+    cost_before_cents: int
+    cost_after_cents: int
+    food_cost_pct_before: Decimal | None
+    food_cost_pct_after: Decimal | None
+    units_sold: Decimal
+    weekly_impact_cents: int
+    drivers: list[CostDriver]
+
+
+class MarginWatch(BaseModel):
+    """Ingredient price changes over the last `days` days and what they did to each dish."""
+
+    days: int
+    weekly_impact_cents: int
+    ingredients: list[PriceChange]
+    dishes: list[DishImpact]
+
+
+class MatrixDish(BaseModel):
+    menu_item_id: UUID
+    name: str
+    units_sold: Decimal
+    margin_cents: int | None
+    kind: Literal["star", "plowhorse", "puzzle", "dog"] | None
+
+
+class MenuMatrix(BaseModel):
+    """Menu engineering: dishes by plates sold and margin per plate. The bars are the lines
+    between the four kinds; null when nothing with a known cost sold in the period."""
+
+    days: int
+    popularity_bar: Decimal | None
+    margin_bar_cents: int | None
+    dishes: list[MatrixDish]

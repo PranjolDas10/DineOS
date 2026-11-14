@@ -290,6 +290,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reports/margin-watch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Margin Watch
+         * @description Composed here, not in menu.service: sales volume belongs to orders, and orders.service
+         *     already imports menu.service, so the service can't import it back.
+         */
+        get: operations["margin_watch_v1_reports_margin_watch_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports/menu-matrix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Menu Matrix */
+        get: operations["menu_matrix_v1_reports_menu_matrix_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/upload-url": {
         parameters: {
             query?: never;
@@ -917,6 +955,18 @@ export interface components {
             /** Base Qty */
             base_qty?: number | string | null;
         };
+        /** CostDriver */
+        CostDriver: {
+            /**
+             * Ingredient Id
+             * Format: uuid
+             */
+            ingredient_id: string;
+            /** Name */
+            name: string;
+            /** Delta Cents */
+            delta_cents: number;
+        };
         /** DayProfit */
         DayProfit: {
             /** Revenue Cents */
@@ -936,6 +986,32 @@ export interface components {
             labor_cents: number;
             /** Profit Cents */
             profit_cents: number;
+        };
+        /** DishImpact */
+        DishImpact: {
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Name */
+            name: string;
+            /** Price Cents */
+            price_cents: number;
+            /** Cost Before Cents */
+            cost_before_cents: number;
+            /** Cost After Cents */
+            cost_after_cents: number;
+            /** Food Cost Pct Before */
+            food_cost_pct_before: string | null;
+            /** Food Cost Pct After */
+            food_cost_pct_after: string | null;
+            /** Units Sold */
+            units_sold: string;
+            /** Weekly Impact Cents */
+            weekly_impact_cents: number;
+            /** Drivers */
+            drivers: components["schemas"]["CostDriver"][];
         };
         /** DishProfit */
         DishProfit: {
@@ -1146,6 +1222,36 @@ export interface components {
             /** Password */
             password: string;
         };
+        /**
+         * MarginWatch
+         * @description Ingredient price changes over the last `days` days and what they did to each dish.
+         */
+        MarginWatch: {
+            /** Days */
+            days: number;
+            /** Weekly Impact Cents */
+            weekly_impact_cents: number;
+            /** Ingredients */
+            ingredients: components["schemas"]["PriceChange"][];
+            /** Dishes */
+            dishes: components["schemas"]["DishImpact"][];
+        };
+        /** MatrixDish */
+        MatrixDish: {
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Name */
+            name: string;
+            /** Units Sold */
+            units_sold: string;
+            /** Margin Cents */
+            margin_cents: number | null;
+            /** Kind */
+            kind: ("star" | "plowhorse" | "puzzle" | "dog") | null;
+        };
         /** Me */
         Me: {
             /** Restaurant */
@@ -1214,6 +1320,21 @@ export interface components {
             recipe_id?: string | null;
             /** Portion Qty */
             portion_qty?: number | string | null;
+        };
+        /**
+         * MenuMatrix
+         * @description Menu engineering: dishes by plates sold and margin per plate. The bars are the lines
+         *     between the four kinds; null when nothing with a known cost sold in the period.
+         */
+        MenuMatrix: {
+            /** Days */
+            days: number;
+            /** Popularity Bar */
+            popularity_bar: string | null;
+            /** Margin Bar Cents */
+            margin_bar_cents: number | null;
+            /** Dishes */
+            dishes: components["schemas"]["MatrixDish"][];
         };
         /** OrderDetail */
         OrderDetail: {
@@ -1351,6 +1472,25 @@ export interface components {
             items: components["schemas"]["TemplateOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** PriceChange */
+        PriceChange: {
+            /**
+             * Ingredient Id
+             * Format: uuid
+             */
+            ingredient_id: string;
+            /** Name */
+            name: string;
+            base_unit: components["schemas"]["BaseUnit"];
+            /** Unit Cents Before */
+            unit_cents_before: string;
+            /** Unit Cents After */
+            unit_cents_after: string;
+            /** Change Pct */
+            change_pct: string | null;
+            /** Dishes Affected */
+            dishes_affected: number;
         };
         /** PriceCreate */
         PriceCreate: {
@@ -2740,6 +2880,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FoodCostReport"];
+                };
+            };
+        };
+    };
+    margin_watch_v1_reports_margin_watch_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarginWatch"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    menu_matrix_v1_reports_menu_matrix_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuMatrix"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

@@ -15,11 +15,12 @@ import json
 import uuid
 from collections import Counter
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import delete, insert, literal_column, select, text
+from sqlalchemy import delete, func, insert, literal_column, select, text
 from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -206,3 +207,14 @@ async def order_for_posting(session: AsyncSession, order_id: UUID) -> dict[str, 
             for i in items
         ],
     }
+
+
+async def units_sold(session: AsyncSession, since: datetime) -> dict[UUID, Decimal]:
+    """Public read: how many of each menu item sold since a moment (mapped items only)."""
+    rows = await session.execute(
+        select(OrderItem.menu_item_id, func.sum(OrderItem.quantity))
+        .join(Order, Order.id == OrderItem.order_id)
+        .where(Order.placed_at >= since, OrderItem.menu_item_id.is_not(None))
+        .group_by(OrderItem.menu_item_id)
+    )
+    return {menu_item_id: qty for menu_item_id, qty in rows if menu_item_id is not None}
