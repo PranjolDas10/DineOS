@@ -11,7 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 from app.api import Problem
 from app.inventory import service as inventory
-from app.menu.costing import Line, RecipeCost, cost_drivers, cost_recipes, line_unit_cost
+from app.menu.costing import (
+    Line,
+    RecipeCost,
+    cost_drivers,
+    cost_recipes,
+    ingredient_quantities,
+    line_unit_cost,
+)
 from app.menu.matrix import Dish, classify
 from app.menu.models import MenuItem, Recipe, RecipeLine
 from app.money import cents, percent
@@ -104,6 +111,69 @@ async def food_cost_report(session: AsyncSession) -> list[dict[str, Any]]:
             }
         )
     return report
+
+
+async def dish_cost(session: AsyncSession, item_id: UUID) -> dict[str, Any]:
+    """One plate of a menu item, flattened to raw ingredients: how much of each, what it costs
+    and its share of the plate. An ingredient is listed once per route into the dish (directly,
+    or inside each sub-recipe the dish's own recipe uses), so the owner sees where it comes
+    from. Unpriced ingredients stay in the list with a null cost: they are what to fix."""
+    item = await crud.get_or_404(session, MenuItem, item_id)
+    yields, lines = await _graph(session)
+    unit_costs = await inventory.latest_unit_costs(session)
+    recipe = cost_recipes(yields, lines, unit_costs).get(item.recipe_id) if item.recipe_id else None
+    per_unit = recipe.per_unit if recipe else None
+    cost = None if per_unit is None else item.portion_qty * per_unit
+    cost_cents = cents(cost)
+    names = {rid: name for rid, name in await session.execute(select(Recipe.id, Recipe.name))}
+
+    # (ingredient, sub-recipe it arrives in or None) -> quantity in one plate.
+    plate: dict[tuple[UUID, UUID | None], Decimal] = defaultdict(Decimal)
+    if item.recipe_id:
+        flat = ingredient_quantities(yields, lines)
+        scale = item.portion_qty / yields[item.recipe_id]
+        for line in lines[item.recipe_id]:
+            if line.ingredient_id is not None:
+                plate[line.ingredient_id, None] += line.qty * scale
+            else:
+                assert line.sub_recipe_id is not None
+                for ingredient_id, qty in flat[line.sub_recipe_id].items():
+                    plate[ingredient_id, line.sub_recipe_id] += line.qty * qty * scale
+
+    labels = await inventory.ingredient_labels(session)
+    priced: list[tuple[Decimal | None, dict[str, Any]]] = []
+    for (ingredient_id, via), qty in plate.items():
+        unit = unit_costs.get(ingredient_id)
+        exact = None if unit is None else qty * unit
+        row = {
+            "ingredient_id": ingredient_id,
+            "name": labels[ingredient_id][0],
+            "base_unit": labels[ingredient_id][1],
+            "via": names[via] if via else None,
+            "qty": qty.quantize(Decimal("0.01")),
+            # Per gram/ml prices are fractions of a cent, so keep 4 decimals.
+            "unit_cents": None if unit is None else unit.quantize(Decimal("0.0001")),
+            "cost_cents": cents(exact),
+            # Share of the exact plate cost, so the shares add up to 100.
+            "share_pct": (exact * 100 / cost).quantize(Decimal("0.1"))
+            if exact is not None and cost
+            else None,
+        }
+        priced.append((exact, row))
+    # Unpriced first (the thing to fix), then the most expensive.
+    priced.sort(key=lambda p: (p[0] is not None, -(p[0] or 0), p[1]["name"]))
+    return {
+        "menu_item_id": item.id,
+        "name": item.name,
+        "price_cents": item.price_cents,
+        "recipe_name": names[item.recipe_id] if item.recipe_id else None,
+        "cost_cents": cost_cents,
+        # Rounded cost + margin always add up to the price the owner sees.
+        "margin_cents": None if cost_cents is None else item.price_cents - cost_cents,
+        "food_cost_pct": percent(cost, item.price_cents),
+        "empty_recipes": sorted(names[r] for r in recipe.empty) if recipe else [],
+        "ingredients": [row for _, row in priced],
+    }
 
 
 async def menu_item_ids_by_name(session: AsyncSession, names: set[str]) -> dict[str, UUID]:

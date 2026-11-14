@@ -2,6 +2,7 @@
 
 All amounts are exact Decimal cents. Round only when presenting (see app.money.cents)."""
 
+from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -58,6 +59,34 @@ def cost_recipes(
             unpriced=frozenset(unpriced),
             empty=frozenset(empty),
         )
+        return memo[recipe_id]
+
+    for recipe_id in yields:
+        visit(recipe_id)
+    return memo
+
+
+def ingredient_quantities(
+    yields: Mapping[UUID, Decimal], lines: Mapping[UUID, Sequence[Line]]
+) -> dict[UUID, dict[UUID, Decimal]]:
+    """Flatten every recipe to raw ingredients: recipe -> {ingredient -> quantity in ONE yield
+    unit of that recipe}, with sub-recipes multiplied through. Answers "how much onion is in
+    a gram of gravy", however deep the onion sits. Memoized like cost_recipes; assumes no
+    cycles."""
+    memo: dict[UUID, dict[UUID, Decimal]] = {}
+
+    def visit(recipe_id: UUID) -> dict[UUID, Decimal]:
+        if recipe_id in memo:
+            return memo[recipe_id]
+        batch: dict[UUID, Decimal] = defaultdict(Decimal)
+        for line in lines.get(recipe_id, ()):
+            if line.ingredient_id is not None:
+                batch[line.ingredient_id] += line.qty
+            else:
+                assert line.sub_recipe_id is not None
+                for ingredient_id, per_unit in visit(line.sub_recipe_id).items():
+                    batch[ingredient_id] += line.qty * per_unit
+        memo[recipe_id] = {i: qty / yields[recipe_id] for i, qty in batch.items()}
         return memo[recipe_id]
 
     for recipe_id in yields:

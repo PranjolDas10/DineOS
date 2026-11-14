@@ -273,6 +273,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/menu-items/{item_id}/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dish Cost */
+        get: operations["get_dish_cost_v1_menu_items__item_id__cost_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reports/food-cost": {
         parameters: {
             query?: never;
@@ -987,6 +1004,34 @@ export interface components {
             /** Profit Cents */
             profit_cents: number;
         };
+        /**
+         * DishCost
+         * @description What goes into one plate of a menu item, down to raw ingredients. Null cost means
+         *     unknown: an ingredient below has no price, or a recipe in `empty_recipes` has no lines.
+         */
+        DishCost: {
+            /**
+             * Menu Item Id
+             * Format: uuid
+             */
+            menu_item_id: string;
+            /** Name */
+            name: string;
+            /** Price Cents */
+            price_cents: number;
+            /** Recipe Name */
+            recipe_name: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /** Margin Cents */
+            margin_cents: number | null;
+            /** Food Cost Pct */
+            food_cost_pct: string | null;
+            /** Empty Recipes */
+            empty_recipes: string[];
+            /** Ingredients */
+            ingredients: components["schemas"]["DishIngredient"][];
+        };
         /** DishImpact */
         DishImpact: {
             /**
@@ -1012,6 +1057,31 @@ export interface components {
             weekly_impact_cents: number;
             /** Drivers */
             drivers: components["schemas"]["CostDriver"][];
+        };
+        /**
+         * DishIngredient
+         * @description One raw ingredient in a plate. `via` names the sub-recipe it arrives in (null when the
+         *     dish's own recipe uses it directly), so the same ingredient can appear once per route.
+         */
+        DishIngredient: {
+            /**
+             * Ingredient Id
+             * Format: uuid
+             */
+            ingredient_id: string;
+            /** Name */
+            name: string;
+            base_unit: components["schemas"]["BaseUnit"];
+            /** Via */
+            via: string | null;
+            /** Qty */
+            qty: string;
+            /** Unit Cents */
+            unit_cents: string | null;
+            /** Cost Cents */
+            cost_cents: number | null;
+            /** Share Pct */
+            share_pct: string | null;
         };
         /** DishProfit */
         DishProfit: {
@@ -2851,6 +2921,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecipeCostOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dish_cost_v1_menu_items__item_id__cost_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DishCost"];
                 };
             };
             /** @description Validation Error */

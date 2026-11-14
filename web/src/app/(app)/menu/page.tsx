@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { CircleCheck, CircleHelp, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 
-import { api, must, type Schemas } from "@/lib/api";
+import { api, must } from "@/lib/api";
 import { money } from "@/lib/format";
 
 import { MenuMatrix } from "./matrix";
 import { PriceWatch } from "./price-watch";
+import { Status, TARGET } from "./status";
 
 export const metadata: Metadata = { title: "Menu costs" };
-
-// shortcut: fixed 30% target, the common rule of thumb; make it owner-editable when they ask.
-const TARGET = 30;
 
 // Owner at night: which dishes cost too much to make, and which have no cost at all yet.
 export default async function MenuCostsPage() {
@@ -74,7 +72,11 @@ export default async function MenuCostsPage() {
               <tbody>
                 {rows.map((item) => (
                   <tr key={item.menu_item_id}>
-                    <th scope="row">{item.name}</th>
+                    <th scope="row">
+                      <Link href={`/menu/${item.menu_item_id}`} className="link">
+                        {item.name}
+                      </Link>
+                    </th>
                     <td className="num">{money(item.price_cents)}</td>
                     <td className="num">{item.cost_cents === null ? "Unknown" : money(item.cost_cents)}</td>
                     <td className="num">{item.margin_cents === null ? "–" : money(item.margin_cents)}</td>
@@ -89,37 +91,5 @@ export default async function MenuCostsPage() {
         </>
       )}
     </div>
-  );
-}
-
-function Status({ item }: { item: Schemas["FoodCostItem"] }) {
-  if (item.food_cost_pct === null) {
-    const why = !item.recipe_id
-      ? "No recipe"
-      : item.unpriced_ingredient_ids.length
-        ? `${item.unpriced_ingredient_ids.length} unpriced ingredient${item.unpriced_ingredient_ids.length > 1 ? "s" : ""}`
-        : "Recipe has no lines";
-    return (
-      <span className="inline-flex items-center gap-1.5 text-fg-muted">
-        <CircleHelp aria-hidden className="size-4" />
-        {why}
-      </span>
-    );
-  }
-  const pct = Number(item.food_cost_pct);
-  const high = pct > TARGET;
-  return (
-    <span className={`inline-flex items-center gap-2 font-medium ${high ? "text-warn" : "text-ok"}`}>
-      {/* Meter runs 0 to twice the target, so the tick in the middle is the target itself. */}
-      <span aria-hidden className="relative hidden h-1.5 w-20 rounded-full bg-surface-sunken sm:block">
-        <span
-          className="absolute inset-y-0 left-0 rounded-full bg-current"
-          style={{ width: `${Math.min(pct / (TARGET * 2), 1) * 100}%` }}
-        />
-        <span className="absolute -inset-y-0.5 left-1/2 w-px bg-fg-muted" />
-      </span>
-      {high ? <TriangleAlert aria-hidden className="size-4" /> : <CircleCheck aria-hidden className="size-4" />}
-      {pct.toFixed(1)}%<span className="sr-only">{high ? ", over target" : ", under target"}</span>
-    </span>
   );
 }

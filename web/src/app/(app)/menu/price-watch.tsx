@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 
 import type { Schemas } from "@/lib/api";
@@ -6,7 +7,7 @@ import { money, moneyWhole } from "@/lib/format";
 type Watch = Schemas["MarginWatch"];
 
 /** Prices are stored per gram or millilitre; people think per kilo, litre or item. */
-function perUnit(unitCents: string, baseUnit: string) {
+export function perUnit(unitCents: string, baseUnit: string) {
   const each = baseUnit === "each";
   return `${money(Number(unitCents) * (each ? 1 : 1000))} ${each ? "each" : baseUnit === "g" ? "a kg" : "a litre"}`;
 }
@@ -81,7 +82,11 @@ export function PriceWatch({ watch }: { watch: Watch }) {
               const delta = d.cost_after_cents - d.cost_before_cents;
               return (
                 <li key={d.menu_item_id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 py-3 first:pt-0 last:pb-0">
-                  <p className="font-medium">{d.name}</p>
+                  <p className="font-medium">
+                    <Link href={`/menu/${d.menu_item_id}`} className="link">
+                      {d.name}
+                    </Link>
+                  </p>
                   <p className={`text-right font-medium ${d.weekly_impact_cents > 0 ? "text-danger" : d.weekly_impact_cents < 0 ? "text-ok" : "text-fg-muted"}`}>
                     {d.weekly_impact_cents === 0
                       ? "No change a week"

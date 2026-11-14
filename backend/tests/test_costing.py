@@ -111,6 +111,50 @@ async def test_latest_price_is_by_observed_at(
     assert (await client.get(paste_cost, headers=headers)).json()["total_cents"] == 400
 
 
+async def test_dish_cost_flattens_a_plate_to_raw_ingredients(
+    client: AsyncClient, menu: tuple[dict[str, str], dict[str, str]]
+) -> None:
+    headers, ids = menu
+
+    async def dish(name: str) -> Any:
+        return (await client.get(f"/v1/menu-items/{ids[name]}/cost", headers=headers)).json()
+
+    body = await dish("Butter Chicken")
+    assert (body["cost_cents"], body["margin_cents"], body["food_cost_pct"]) == (147, 1652, "8.2")
+    rows = {(r["name"], r["via"]): r for r in body["ingredients"]}
+    # 350 g plate of a 6000 g batch holding 3000 g chicken: 175 g x 0.60 = 105; 105/147.23 = 71.3%
+    chicken = rows["Chicken thigh", None]
+    assert (chicken["qty"], chicken["cost_cents"], chicken["share_pct"]) == ("175.00", 105, "71.3")
+    assert body["ingredients"][0] == chicken  # most expensive first
+    # Tomato reaches the plate twice inside the gravy (directly and through the paste):
+    # 145.83 g gravy x (3000 + 1000 x 0.4) / 5000 = 99.17 g x 0.15 = 14.9
+    tomato = rows["Tomato puree", "Makhani gravy"]
+    assert (tomato["qty"], tomato["cost_cents"]) == ("99.17", 15)
+    # The same ingredient is listed per route: butter directly, and butter in the gravy.
+    assert rows["Butter", None]["cost_cents"] == 2
+    assert ("Butter", "Makhani gravy") in rows
+    # Every route is accounted for: the shares cover the whole plate.
+    shares = sum((Decimal(r["share_pct"]) for r in body["ingredients"]), Decimal(0))
+    assert abs(shares - 100) <= Decimal("0.5")
+
+    thali = await dish("Veg Thali")
+    assert thali["cost_cents"] is None
+    saffron = thali["ingredients"][0]  # unpriced first: the thing to fix
+    assert (saffron["name"], saffron["via"], saffron["cost_cents"]) == (
+        "Saffron",
+        "Saffron rice",
+        None,
+    )
+    assert all(r["share_pct"] is None for r in thali["ingredients"])
+
+    kulfi = await dish("Mango Kulfi")
+    assert (kulfi["empty_recipes"], kulfi["ingredients"]) == (["Mango kulfi"], [])
+    lassi = await dish("Mango Lassi")
+    assert (lassi["recipe_name"], lassi["cost_cents"], lassi["ingredients"]) == (None, None, [])
+    missing = await client.get(f"/v1/menu-items/{UUID(int=0)}/cost", headers=headers)
+    assert missing.status_code == 404
+
+
 async def test_unknown_recipe_cost_is_404(client: AsyncClient, make_tenant: MakeTenant) -> None:
     headers = auth_headers(await make_tenant())
     resp = await client.get(f"/v1/recipes/{UUID(int=0)}/cost", headers=headers)

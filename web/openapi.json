@@ -1373,6 +1373,54 @@
         }
       }
     },
+    "/v1/menu-items/{item_id}/cost": {
+      "get": {
+        "tags": [
+          "menu"
+        ],
+        "summary": "Get Dish Cost",
+        "operationId": "get_dish_cost_v1_menu_items__item_id__cost_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DishCost"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/reports/food-cost": {
       "get": {
         "tags": [
@@ -3628,6 +3676,95 @@
         ],
         "title": "DayProfit"
       },
+      "DishCost": {
+        "properties": {
+          "menu_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Menu Item Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_cents": {
+            "type": "integer",
+            "title": "Price Cents"
+          },
+          "recipe_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recipe Name"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "margin_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Cents"
+          },
+          "food_cost_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Cost Pct"
+          },
+          "empty_recipes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Empty Recipes"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/DishIngredient"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          }
+        },
+        "type": "object",
+        "required": [
+          "menu_item_id",
+          "name",
+          "price_cents",
+          "recipe_name",
+          "cost_cents",
+          "margin_cents",
+          "food_cost_pct",
+          "empty_recipes",
+          "ingredients"
+        ],
+        "title": "DishCost",
+        "description": "What goes into one plate of a menu item, down to raw ingredients. Null cost means\nunknown: an ingredient below has no price, or a recipe in `empty_recipes` has no lines."
+      },
       "DishImpact": {
         "properties": {
           "menu_item_id": {
@@ -3703,6 +3840,83 @@
           "drivers"
         ],
         "title": "DishImpact"
+      },
+      "DishIngredient": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Ingredient Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "base_unit": {
+            "$ref": "#/components/schemas/BaseUnit"
+          },
+          "via": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via"
+          },
+          "qty": {
+            "type": "string",
+            "title": "Qty"
+          },
+          "unit_cents": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Cents"
+          },
+          "cost_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cents"
+          },
+          "share_pct": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "name",
+          "base_unit",
+          "via",
+          "qty",
+          "unit_cents",
+          "cost_cents",
+          "share_pct"
+        ],
+        "title": "DishIngredient",
+        "description": "One raw ingredient in a plate. `via` names the sub-recipe it arrives in (null when the\ndish's own recipe uses it directly), so the same ingredient can appear once per route."
       },
       "DishProfit": {
         "properties": {

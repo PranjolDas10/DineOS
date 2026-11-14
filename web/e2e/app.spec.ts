@@ -90,6 +90,27 @@ test("menu costs shows what ingredient price changes did to dishes", async ({ pa
   await expect(matrix.getByText("Stars", { exact: true }).last()).toBeVisible();
 });
 
+test("a dish opens to its ingredients and a price calculator", async ({ page }) => {
+  await page.goto("/menu");
+  await page.getByRole("table").getByRole("link", { name: "Butter Chicken" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Butter Chicken" })).toBeVisible();
+  // Sub-recipes are opened up: an ingredient names the sub-recipe it arrives in.
+  const plate = page.getByRole("region", { name: /% of what this plate costs/ });
+  await expect(plate.getByRole("row").nth(1)).toContainText(/\d+(\.\d)?%/);
+  await expect(plate.getByText(/^in /).first()).toBeVisible();
+
+  const calc = page.getByRole("region", { name: "What would a different menu price do?" });
+  await expect(calc).toContainText("No change");
+  await calc.getByRole("slider", { name: "Menu price" }).press("ArrowRight");
+  await expect(calc).toContainText(/\+\$\d+ kept/);
+  await calc.getByRole("button", { name: /hits 30%/ }).click();
+  await expect(calc).toContainText("under target");
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectAccessible(page);
+  }
+});
+
 // Last: it empties the inbox the earlier tests (and the axe pass) expect to have content.
 test("alerts show in the sidebar and can be marked read", async ({ page }) => {
   await page.goto("/");

@@ -115,6 +115,35 @@ class FoodCostReport(BaseModel):
     items: list[FoodCostItem]
 
 
+class DishIngredient(BaseModel):
+    """One raw ingredient in a plate. `via` names the sub-recipe it arrives in (null when the
+    dish's own recipe uses it directly), so the same ingredient can appear once per route."""
+
+    ingredient_id: UUID
+    name: str
+    base_unit: BaseUnit
+    via: str | None
+    qty: Decimal
+    unit_cents: Decimal | None
+    cost_cents: int | None
+    share_pct: Decimal | None
+
+
+class DishCost(BaseModel):
+    """What goes into one plate of a menu item, down to raw ingredients. Null cost means
+    unknown: an ingredient below has no price, or a recipe in `empty_recipes` has no lines."""
+
+    menu_item_id: UUID
+    name: str
+    price_cents: int
+    recipe_name: str | None
+    cost_cents: int | None
+    margin_cents: int | None
+    food_cost_pct: Decimal | None
+    empty_recipes: list[str]
+    ingredients: list[DishIngredient]
+
+
 class PriceChange(BaseModel):
     ingredient_id: UUID
     name: str
