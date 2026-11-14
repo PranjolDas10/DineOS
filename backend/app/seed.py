@@ -174,7 +174,14 @@ async def seed(password: str, reset: bool = False) -> None:
     ) as api:
 
         async def call(method: str, url: str, body: Any, **h: str) -> Any:
-            resp = await api.request(method, url, json=body, headers=h)
+            # The seed goes through the real API, so the per-tenant rate limit applies to it
+            # too. On a fast machine it outruns the bucket: wait as told, then carry on.
+            while True:
+                resp = await api.request(method, url, json=body, headers=h)
+                if resp.status_code != 429:
+                    break
+                # The server says how long; there is no local event to wait on instead.
+                await asyncio.sleep(int(resp.headers["Retry-After"]))
             resp.raise_for_status()
             return resp.json()
 
