@@ -130,6 +130,20 @@ async def test_import_is_idempotent_and_versions_changed_orders(
     [_, corrected] = await orders(client, h)
     assert (corrected["id"], corrected["tip_cents"]) == (early["id"], 800)  # same order, new data
 
+    # The naan sold but isn't on the menu: it is reported, until the menu has it and a replay
+    # re-maps the old sales.
+    since = {"since": "2026-10-01T00:00:00Z"}
+    unmatched = (await client.get("/v1/orders/unmatched", params=since, headers=h)).json()
+    assert [
+        (i["name"], i["quantity"], i["sales_cents"], i["orders"]) for i in unmatched["items"]
+    ] == [("Garlic Naan", "3", 1197, 1)]
+    await client.post("/v1/menu-items", json={"name": "Garlic naan", "price_cents": 399}, headers=h)
+    async with SessionLocal() as session, session.begin():
+        await set_tenant(session, restaurant[0])
+        await service.replay_orders(session, {})
+    unmatched = (await client.get("/v1/orders/unmatched", params=since, headers=h)).json()
+    assert unmatched["items"] == []
+
 
 async def test_projection_never_moves_backwards_and_replay_rebuilds(
     client: AsyncClient, restaurant: tuple[UUID, dict[str, str]], files: dict[str, bytes]

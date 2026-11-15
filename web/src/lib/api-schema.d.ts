@@ -710,6 +710,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/orders/unmatched": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unmatched
+         * @description Sold items that match no menu item (default: the last 28 days).
+         */
+        get: operations["unmatched_v1_orders_unmatched_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/orders/{order_id}": {
         parameters: {
             query?: never;
@@ -2077,6 +2097,35 @@ export interface components {
             token_type: string;
             /** Expires In */
             expires_in: number;
+        };
+        /** UnmatchedItem */
+        UnmatchedItem: {
+            /** Name */
+            name: string;
+            /** Quantity */
+            quantity: string;
+            /** Sales Cents */
+            sales_cents: number;
+            /** Orders */
+            orders: number;
+            /**
+             * Last Sold At
+             * Format: date-time
+             */
+            last_sold_at: string;
+        };
+        /**
+         * UnmatchedSales
+         * @description Sold items with no menu item since `since`: their sales have no food cost attached.
+         */
+        UnmatchedSales: {
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+            /** Items */
+            items: components["schemas"]["UnmatchedItem"][];
         };
         /** UploadUrlIn */
         UploadUrlIn: {
@@ -3875,6 +3924,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unmatched_v1_orders_unmatched_get: {
+        parameters: {
+            query?: {
+                since?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnmatchedSales"];
                 };
             };
             /** @description Validation Error */

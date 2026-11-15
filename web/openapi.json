@@ -3000,6 +3000,62 @@
         }
       }
     },
+    "/v1/orders/unmatched": {
+      "get": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Unmatched",
+        "description": "Sold items that match no menu item (default: the last 28 days).",
+        "operationId": "unmatched_v1_orders_unmatched_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnmatchedSales"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/orders/{order_id}": {
       "get": {
         "tags": [
@@ -6889,6 +6945,63 @@
           "expires_in"
         ],
         "title": "TokenPair"
+      },
+      "UnmatchedItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "sales_cents": {
+            "type": "integer",
+            "title": "Sales Cents"
+          },
+          "orders": {
+            "type": "integer",
+            "title": "Orders"
+          },
+          "last_sold_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Sold At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "quantity",
+          "sales_cents",
+          "orders",
+          "last_sold_at"
+        ],
+        "title": "UnmatchedItem"
+      },
+      "UnmatchedSales": {
+        "properties": {
+          "since": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Since"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UnmatchedItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "since",
+          "items"
+        ],
+        "title": "UnmatchedSales",
+        "description": "Sold items with no menu item since `since`: their sales have no food cost attached."
       },
       "UploadUrlIn": {
         "properties": {

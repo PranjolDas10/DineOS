@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Any
 from uuid import UUID
@@ -70,6 +70,21 @@ class OrderList(BaseModel):
     items: list[OrderOut]
 
 
+class UnmatchedItem(BaseModel):
+    name: str
+    quantity: Decimal
+    sales_cents: int
+    orders: int
+    last_sold_at: datetime
+
+
+class UnmatchedSales(BaseModel):
+    """Sold items with no menu item since `since`: their sales have no food cost attached."""
+
+    since: datetime
+    items: list[UnmatchedItem]
+
+
 @router.post("/imports/upload-url", response_model=UploadUrlOut)
 async def upload_url(claims: Claims) -> Any:
     """Step 1: upload the sales export (CSV) straight to storage with this URL."""
@@ -118,6 +133,14 @@ async def list_orders(
         .order_by(Order.placed_at.desc(), Order.id)
     )
     return {"items": list(await session.scalars(stmt))}
+
+
+# Declared before /orders/{order_id}, or "unmatched" would be read as an order id.
+@router.get("/orders/unmatched", response_model=UnmatchedSales)
+async def unmatched(session: TenantSession, since: AwareDatetime | None = None) -> Any:
+    """Sold items that match no menu item (default: the last 28 days)."""
+    since = since or datetime.now(UTC) - timedelta(days=28)
+    return {"since": since, "items": await service.unmatched_sales(session, since)}
 
 
 @router.get("/orders/{order_id}", response_model=OrderDetail)

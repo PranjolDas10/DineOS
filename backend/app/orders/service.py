@@ -218,3 +218,24 @@ async def units_sold(session: AsyncSession, since: datetime) -> dict[UUID, Decim
         .group_by(OrderItem.menu_item_id)
     )
     return {menu_item_id: qty for menu_item_id, qty in rows if menu_item_id is not None}
+
+
+async def unmatched_sales(session: AsyncSession, since: datetime) -> list[dict[str, Any]]:
+    """Sold item names that map to no menu item, biggest sales first. These sales carry no
+    food cost in the ledger, so profit is overstated by whatever they cost to make. The fix
+    is the owner's: add or rename the menu item, then replay."""
+    name, sales = func.lower(OrderItem.name), func.sum(OrderItem.line_total_cents)
+    rows = await session.execute(
+        select(
+            func.min(OrderItem.name).label("name"),
+            func.sum(OrderItem.quantity).label("quantity"),
+            sales.label("sales_cents"),
+            func.count(func.distinct(Order.id)).label("orders"),
+            func.max(Order.placed_at).label("last_sold_at"),
+        )
+        .join(Order, Order.id == OrderItem.order_id)
+        .where(Order.placed_at >= since, OrderItem.menu_item_id.is_(None))
+        .group_by(name)  # the menu match ignores case, so the grouping does too
+        .order_by(sales.desc(), name)
+    )
+    return [dict(row) for row in rows.mappings()]
