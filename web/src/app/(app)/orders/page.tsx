@@ -17,6 +17,18 @@ const IMPORT_STATUS = {
   failed: { label: "Couldn't import", icon: CircleAlert, className: "bg-danger-bg text-danger" },
 } as const;
 
+/** A UUIDv7 (48-bit millisecond time, then random bits), like every id the API makes: ids
+ * sort by creation time, which is what keeps cursor pagination in a stable order. */
+function uuidv7() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const now = Date.now();
+  for (let i = 0; i < 6; i++) bytes[i] = Math.floor(now / 2 ** (8 * (5 - i))) % 256; // big-endian ms
+  bytes[6] = 0x70 | (bytes[6] & 0x0f); // version 7
+  bytes[8] = 0x80 | (bytes[8] & 0x3f); // RFC variant
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
 // Owner at night: every channel's orders for one day in one list. Did the delivery apps and
@@ -123,11 +135,14 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
                       {stamp.format(new Date(i.last_sold_at))}.
                     </span>
                   </p>
-                  <form action={addToMenu.bind(null, crypto.randomUUID(), i.name, price)}>
+                  {/* No price to suggest for a line that was all refunds or zero quantity. */}
+                  {Number.isFinite(price) && price >= 0 && (
+                  <form action={addToMenu.bind(null, uuidv7(), i.name, price)}>
                     <button type="submit" className="btn-secondary min-h-9 text-sm">
                       Add to menu at {money(price)}
                     </button>
                   </form>
+                  )}
                 </li>
               );
             })}
