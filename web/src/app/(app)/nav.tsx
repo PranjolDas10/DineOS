@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, CalendarDays, ChartNoAxesColumn, CookingPot, ReceiptText, type LucideIcon } from "lucide-react";
+import { Bell, CalendarDays, ChartNoAxesColumn, CookingPot, Inbox, ReceiptText, type LucideIcon } from "lucide-react";
 
 export type Destination = { href: string; label: string; icon: LucideIcon; hint: string };
 
@@ -19,6 +19,7 @@ export const GROUPS: { title: string; links: Destination[] }[] = [
     title: "Operations",
     links: [
       { href: "/alerts", label: "Alerts", icon: Bell, hint: "Price changes and overdue checklists" },
+      { href: "/orders", label: "Orders", icon: Inbox, hint: "Every channel's orders, day by day" },
       { href: "/receipts", label: "Receipts", icon: ReceiptText, hint: "Review scanned supplier receipts" },
       { href: "/schedule", label: "Schedule", icon: CalendarDays, hint: "Shifts and labor for the week" },
     ],

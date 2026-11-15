@@ -9,7 +9,7 @@ async function expectAccessible(page: Page) {
 test("pages pass axe in light and dark", async ({ page }) => {
   for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
-    for (const path of ["/", "/menu", "/alerts", "/receipts", "/schedule"]) {
+    for (const path of ["/", "/menu", "/orders", "/alerts", "/receipts", "/schedule"]) {
       await page.goto(path);
       await expectAccessible(page);
     }
@@ -109,6 +109,26 @@ test("a dish opens to its ingredients and a price calculator", async ({ page }) 
     await page.emulateMedia({ colorScheme: scheme });
     await expectAccessible(page);
   }
+});
+
+test("orders lists a day, opens an order and flags sales the menu doesn't have", async ({ page }) => {
+  await page.goto("/orders");
+  await expect(page.getByRole("heading", { name: /^Busiest from \d+:00/ })).toBeVisible();
+  const first = page.getByRole("table").getByRole("link").first();
+  await first.click();
+  await expect(first).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("table").getByText(/^Tax \$/)).toBeVisible();
+  await expectAccessible(page);
+
+  await page.getByRole("link", { name: "Previous day" }).click();
+  await expect(page.getByRole("link", { name: "Today" })).toBeVisible();
+
+  // The demo till sells a "Chef's Special" that no menu item matches.
+  const unmatched = page.getByRole("region", { name: /of sales is from an item the menu doesn't have/ });
+  await expect(unmatched.getByText("Chef's Special")).toBeVisible();
+  await expect(unmatched.getByRole("button", { name: /^Add to menu at \$/ })).toBeVisible();
+  await unmatched.getByRole("button", { name: "Rebuild orders" }).click(); // idempotent: safe on every run
+  await expect(page.getByRole("status")).toContainText("Rebuilding orders");
 });
 
 // Last: it empties the inbox the earlier tests (and the axe pass) expect to have content.

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import MigrationSettings
 from app.db import SessionLocal, set_tenant
-from app.menu.costing import Line, cost_drivers, cost_recipes
+from app.menu.costing import Line, cost_drivers, cost_recipes, ingredient_quantities
 from app.money import cents, percent
 from app.orders import service as orders
 from tests import mock_menu
@@ -50,6 +50,18 @@ def test_cost_recipes_pure() -> None:
     # Unknowns propagate up with the reason, so the owner knows what to fix.
     assert costs[ids["Veg thali"]].unpriced == {ids["Saffron"]}
     assert costs[ids["Mango kulfi"]].empty == {ids["Mango kulfi"]}
+
+    # Flattening is the same walk seen from the other side: pricing a recipe's raw
+    # ingredients must give its cost, through shared and nested sub-recipes alike.
+    flat = ingredient_quantities(yields, lines)
+    paste, gravy = ids["Onion masala paste"], ids["Makhani gravy"]
+    # 1000 g of paste holds 1200 g onion; a 5000 g gravy batch uses 1000 g of paste.
+    assert flat[paste][ids["Onion"]] == Decimal("1.2")
+    assert flat[gravy][ids["Onion"]] == Decimal("0.24")
+    for recipe_id, cost in costs.items():
+        if cost.per_unit is not None:
+            priced = sum((q * unit_costs[i] for i, q in flat[recipe_id].items()), Decimal(0))
+            assert abs(priced - cost.per_unit) < Decimal("1e-18")
 
 
 def test_rounding_is_half_even_and_once() -> None:
