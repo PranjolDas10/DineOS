@@ -21,6 +21,14 @@ async def test_readyz_real_postgres(client: AsyncClient) -> None:
     assert resp.json() == {"status": "ok"}
 
 
+def test_operation_ids_are_unique() -> None:
+    # They are the route function names; two routes sharing one would collide in the
+    # generated clients.
+    spec = app.openapi()
+    ids = [op["operationId"] for path in spec["paths"].values() for op in path.values()]
+    assert sorted(ids) == sorted(set(ids))
+
+
 class _DeadSession:
     async def execute(self, *_: object) -> None:
         raise OSError("connection refused")

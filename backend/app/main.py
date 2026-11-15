@@ -31,7 +31,11 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await engine.dispose()
 
 
-app = FastAPI(title="DineOS", lifespan=lifespan)
+# Operation ids are the route function names ("today", not "today_v1_checklists_today_get"):
+# the generated Kotlin client turns them into method names. A test keeps them unique.
+app = FastAPI(
+    title="DineOS", lifespan=lifespan, generate_unique_id_function=lambda route: route.name
+)
 install_problem_handlers(app)
 app.add_middleware(RequestContext)
 app.include_router(auth_router)

@@ -11,7 +11,7 @@
           "auth"
         ],
         "summary": "Login",
-        "operationId": "login_v1_auth_login_post",
+        "operationId": "login",
         "requestBody": {
           "content": {
             "application/json": {
@@ -52,7 +52,7 @@
           "auth"
         ],
         "summary": "Refresh",
-        "operationId": "refresh_v1_auth_refresh_post",
+        "operationId": "refresh",
         "requestBody": {
           "content": {
             "application/json": {
@@ -93,7 +93,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "operationId": "logout_v1_auth_logout_post",
+        "operationId": "logout",
         "requestBody": {
           "content": {
             "application/json": {
@@ -128,7 +128,7 @@
         ],
         "summary": "Me",
         "description": "Who is signed in, and the restaurant's clock. RLS limits both queries to the caller's\ntenant, so neither needs a tenant filter.",
-        "operationId": "me_v1_auth_me_get",
+        "operationId": "me",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -154,7 +154,7 @@
           "inventory"
         ],
         "summary": "Create Supplier",
-        "operationId": "create_supplier_v1_suppliers_post",
+        "operationId": "create_supplier",
         "security": [
           {
             "HTTPBearer": []
@@ -198,7 +198,7 @@
           "inventory"
         ],
         "summary": "List Suppliers",
-        "operationId": "list_suppliers_v1_suppliers_get",
+        "operationId": "list_suppliers",
         "security": [
           {
             "HTTPBearer": []
@@ -265,7 +265,7 @@
           "inventory"
         ],
         "summary": "Get Supplier",
-        "operationId": "get_supplier_v1_suppliers__supplier_id__get",
+        "operationId": "get_supplier",
         "security": [
           {
             "HTTPBearer": []
@@ -311,7 +311,7 @@
           "inventory"
         ],
         "summary": "Update Supplier",
-        "operationId": "update_supplier_v1_suppliers__supplier_id__patch",
+        "operationId": "update_supplier",
         "security": [
           {
             "HTTPBearer": []
@@ -385,7 +385,7 @@
           "inventory"
         ],
         "summary": "Create Ingredient",
-        "operationId": "create_ingredient_v1_ingredients_post",
+        "operationId": "create_ingredient",
         "security": [
           {
             "HTTPBearer": []
@@ -429,7 +429,7 @@
           "inventory"
         ],
         "summary": "List Ingredients",
-        "operationId": "list_ingredients_v1_ingredients_get",
+        "operationId": "list_ingredients",
         "security": [
           {
             "HTTPBearer": []
@@ -496,7 +496,7 @@
           "inventory"
         ],
         "summary": "Get Ingredient",
-        "operationId": "get_ingredient_v1_ingredients__ingredient_id__get",
+        "operationId": "get_ingredient",
         "security": [
           {
             "HTTPBearer": []
@@ -542,7 +542,7 @@
           "inventory"
         ],
         "summary": "Update Ingredient",
-        "operationId": "update_ingredient_v1_ingredients__ingredient_id__patch",
+        "operationId": "update_ingredient",
         "security": [
           {
             "HTTPBearer": []
@@ -616,7 +616,7 @@
           "inventory"
         ],
         "summary": "Add Price",
-        "operationId": "add_price_v1_ingredients__ingredient_id__prices_post",
+        "operationId": "add_price",
         "security": [
           {
             "HTTPBearer": []
@@ -672,7 +672,7 @@
           "inventory"
         ],
         "summary": "List Prices",
-        "operationId": "list_prices_v1_ingredients__ingredient_id__prices_get",
+        "operationId": "list_prices",
         "security": [
           {
             "HTTPBearer": []
@@ -749,7 +749,7 @@
           "menu"
         ],
         "summary": "Create Recipe",
-        "operationId": "create_recipe_v1_recipes_post",
+        "operationId": "create_recipe",
         "security": [
           {
             "HTTPBearer": []
@@ -793,7 +793,7 @@
           "menu"
         ],
         "summary": "List Recipes",
-        "operationId": "list_recipes_v1_recipes_get",
+        "operationId": "list_recipes",
         "security": [
           {
             "HTTPBearer": []
@@ -860,7 +860,7 @@
           "menu"
         ],
         "summary": "Get Recipe",
-        "operationId": "get_recipe_v1_recipes__recipe_id__get",
+        "operationId": "get_recipe",
         "security": [
           {
             "HTTPBearer": []
@@ -906,7 +906,7 @@
           "menu"
         ],
         "summary": "Update Recipe",
-        "operationId": "update_recipe_v1_recipes__recipe_id__patch",
+        "operationId": "update_recipe",
         "security": [
           {
             "HTTPBearer": []
@@ -980,7 +980,7 @@
           "menu"
         ],
         "summary": "Get Lines",
-        "operationId": "get_lines_v1_recipes__recipe_id__lines_get",
+        "operationId": "get_lines",
         "security": [
           {
             "HTTPBearer": []
@@ -1026,7 +1026,7 @@
           "menu"
         ],
         "summary": "Replace Lines",
-        "operationId": "replace_lines_v1_recipes__recipe_id__lines_put",
+        "operationId": "replace_lines",
         "security": [
           {
             "HTTPBearer": []
@@ -1100,7 +1100,7 @@
           "menu"
         ],
         "summary": "Create Menu Item",
-        "operationId": "create_menu_item_v1_menu_items_post",
+        "operationId": "create_menu_item",
         "security": [
           {
             "HTTPBearer": []
@@ -1144,7 +1144,7 @@
           "menu"
         ],
         "summary": "List Menu Items",
-        "operationId": "list_menu_items_v1_menu_items_get",
+        "operationId": "list_menu_items",
         "security": [
           {
             "HTTPBearer": []
@@ -1211,7 +1211,7 @@
           "menu"
         ],
         "summary": "Get Menu Item",
-        "operationId": "get_menu_item_v1_menu_items__item_id__get",
+        "operationId": "get_menu_item",
         "security": [
           {
             "HTTPBearer": []
@@ -1257,7 +1257,7 @@
           "menu"
         ],
         "summary": "Update Menu Item",
-        "operationId": "update_menu_item_v1_menu_items__item_id__patch",
+        "operationId": "update_menu_item",
         "security": [
           {
             "HTTPBearer": []
@@ -1331,7 +1331,7 @@
           "menu"
         ],
         "summary": "Get Recipe Cost",
-        "operationId": "get_recipe_cost_v1_recipes__recipe_id__cost_get",
+        "operationId": "get_recipe_cost",
         "security": [
           {
             "HTTPBearer": []
@@ -1379,7 +1379,7 @@
           "menu"
         ],
         "summary": "Get Dish Cost",
-        "operationId": "get_dish_cost_v1_menu_items__item_id__cost_get",
+        "operationId": "get_dish_cost",
         "security": [
           {
             "HTTPBearer": []
@@ -1427,7 +1427,7 @@
           "menu"
         ],
         "summary": "Food Cost Report",
-        "operationId": "food_cost_report_v1_reports_food_cost_get",
+        "operationId": "food_cost_report",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1454,7 +1454,7 @@
         ],
         "summary": "Margin Watch",
         "description": "Composed here, not in menu.service: sales volume belongs to orders, and orders.service\nalready imports menu.service, so the service can't import it back.",
-        "operationId": "margin_watch_v1_reports_margin_watch_get",
+        "operationId": "margin_watch",
         "security": [
           {
             "HTTPBearer": []
@@ -1504,7 +1504,7 @@
           "menu"
         ],
         "summary": "Menu Matrix",
-        "operationId": "menu_matrix_v1_reports_menu_matrix_get",
+        "operationId": "menu_matrix",
         "security": [
           {
             "HTTPBearer": []
@@ -1553,9 +1553,9 @@
         "tags": [
           "receipts"
         ],
-        "summary": "Upload Url",
+        "summary": "Receipt Upload Url",
         "description": "Step 1: get a short-lived URL, then PUT the photo straight to storage with the same\nContent-Type. The API never handles image bytes.",
-        "operationId": "upload_url_v1_receipts_upload_url_post",
+        "operationId": "receipt_upload_url",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1602,7 +1602,7 @@
         ],
         "summary": "Create Receipt",
         "description": "Step 2: after the upload succeeds, register it. Parsing starts in the background.",
-        "operationId": "create_receipt_v1_receipts_post",
+        "operationId": "create_receipt",
         "security": [
           {
             "HTTPBearer": []
@@ -1646,7 +1646,7 @@
           "receipts"
         ],
         "summary": "List Receipts",
-        "operationId": "list_receipts_v1_receipts_get",
+        "operationId": "list_receipts",
         "security": [
           {
             "HTTPBearer": []
@@ -1713,7 +1713,7 @@
           "receipts"
         ],
         "summary": "Get Receipt",
-        "operationId": "get_receipt_v1_receipts__receipt_id__get",
+        "operationId": "get_receipt",
         "security": [
           {
             "HTTPBearer": []
@@ -1762,7 +1762,7 @@
         ],
         "summary": "Confirm Receipt",
         "description": "Owner-reviewed values become prices and an eval label. Every line must be decided.",
-        "operationId": "confirm_receipt_v1_receipts__receipt_id__confirm_post",
+        "operationId": "confirm_receipt",
         "security": [
           {
             "HTTPBearer": []
@@ -1836,7 +1836,7 @@
           "scheduling"
         ],
         "summary": "Create Staff",
-        "operationId": "create_staff_v1_staff_post",
+        "operationId": "create_staff",
         "security": [
           {
             "HTTPBearer": []
@@ -1880,7 +1880,7 @@
           "scheduling"
         ],
         "summary": "List Staff",
-        "operationId": "list_staff_v1_staff_get",
+        "operationId": "list_staff",
         "security": [
           {
             "HTTPBearer": []
@@ -1947,7 +1947,7 @@
           "scheduling"
         ],
         "summary": "Get Staff",
-        "operationId": "get_staff_v1_staff__staff_id__get",
+        "operationId": "get_staff",
         "security": [
           {
             "HTTPBearer": []
@@ -1993,7 +1993,7 @@
           "scheduling"
         ],
         "summary": "Update Staff",
-        "operationId": "update_staff_v1_staff__staff_id__patch",
+        "operationId": "update_staff",
         "security": [
           {
             "HTTPBearer": []
@@ -2068,7 +2068,7 @@
         ],
         "summary": "Create Shift",
         "description": "409 if this person already has an overlapping shift (enforced by the database).",
-        "operationId": "create_shift_v1_shifts_post",
+        "operationId": "create_shift",
         "security": [
           {
             "HTTPBearer": []
@@ -2112,7 +2112,7 @@
           "scheduling"
         ],
         "summary": "List Shifts",
-        "operationId": "list_shifts_v1_shifts_get",
+        "operationId": "list_shifts",
         "security": [
           {
             "HTTPBearer": []
@@ -2170,7 +2170,7 @@
           "scheduling"
         ],
         "summary": "Move Shift",
-        "operationId": "move_shift_v1_shifts__shift_id__patch",
+        "operationId": "move_shift",
         "security": [
           {
             "HTTPBearer": []
@@ -2242,7 +2242,7 @@
           "scheduling"
         ],
         "summary": "Delete Shift",
-        "operationId": "delete_shift_v1_shifts__shift_id__delete",
+        "operationId": "delete_shift",
         "security": [
           {
             "HTTPBearer": []
@@ -2299,7 +2299,7 @@
           "scheduling"
         ],
         "summary": "Labor Cost",
-        "operationId": "labor_cost_v1_reports_labor_cost_get",
+        "operationId": "labor_cost",
         "security": [
           {
             "HTTPBearer": []
@@ -2357,7 +2357,7 @@
           "checklists"
         ],
         "summary": "Create Template",
-        "operationId": "create_template_v1_checklists_templates_post",
+        "operationId": "create_template",
         "security": [
           {
             "HTTPBearer": []
@@ -2401,7 +2401,7 @@
           "checklists"
         ],
         "summary": "List Templates",
-        "operationId": "list_templates_v1_checklists_templates_get",
+        "operationId": "list_templates",
         "security": [
           {
             "HTTPBearer": []
@@ -2469,7 +2469,7 @@
         ],
         "summary": "Update Template",
         "description": "Changes apply from the next run; today's run keeps the items it started with.",
-        "operationId": "update_template_v1_checklists_templates__template_id__patch",
+        "operationId": "update_template",
         "security": [
           {
             "HTTPBearer": []
@@ -2544,7 +2544,7 @@
         ],
         "summary": "Today",
         "description": "Runs for a business day (default: today, restaurant time). Creates them if the daily\njob hasn't yet, and re-seeds the daily job chain if it ever broke.",
-        "operationId": "today_v1_checklists_today_get",
+        "operationId": "today",
         "security": [
           {
             "HTTPBearer": []
@@ -2599,7 +2599,7 @@
           "checklists"
         ],
         "summary": "Record Checks",
-        "operationId": "record_checks_v1_checklists_runs__run_id__checks_post",
+        "operationId": "record_checks",
         "security": [
           {
             "HTTPBearer": []
@@ -2658,7 +2658,7 @@
         ],
         "summary": "List Alerts",
         "description": "Newest first. ponytail: no cursor; the Today screen shows the latest few.",
-        "operationId": "list_alerts_v1_alerts_get",
+        "operationId": "list_alerts",
         "security": [
           {
             "HTTPBearer": []
@@ -2719,7 +2719,7 @@
         ],
         "summary": "Mark Read",
         "description": "Idempotent: marking an already-read alert keeps its first read time.",
-        "operationId": "mark_read_v1_alerts__alert_id__read_post",
+        "operationId": "mark_read",
         "security": [
           {
             "HTTPBearer": []
@@ -2759,9 +2759,9 @@
         "tags": [
           "orders"
         ],
-        "summary": "Upload Url",
+        "summary": "Import Upload Url",
         "description": "Step 1: upload the sales export (CSV) straight to storage with this URL.",
-        "operationId": "upload_url_v1_imports_upload_url_post",
+        "operationId": "import_upload_url",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2788,7 +2788,7 @@
         ],
         "summary": "Create Import",
         "description": "Step 2: register the upload; orders are imported in the background.",
-        "operationId": "create_import_v1_imports_post",
+        "operationId": "create_import",
         "security": [
           {
             "HTTPBearer": []
@@ -2832,7 +2832,7 @@
           "orders"
         ],
         "summary": "List Imports",
-        "operationId": "list_imports_v1_imports_get",
+        "operationId": "list_imports",
         "security": [
           {
             "HTTPBearer": []
@@ -2899,7 +2899,7 @@
           "orders"
         ],
         "summary": "Get Import",
-        "operationId": "get_import_v1_imports__import_id__get",
+        "operationId": "get_import",
         "security": [
           {
             "HTTPBearer": []
@@ -2948,7 +2948,7 @@
         ],
         "summary": "List Orders",
         "description": "The unified inbox: every channel's orders in one time window (max 31 days).",
-        "operationId": "list_orders_v1_orders_get",
+        "operationId": "list_orders",
         "security": [
           {
             "HTTPBearer": []
@@ -3007,7 +3007,7 @@
         ],
         "summary": "Unmatched",
         "description": "Sold items that match no menu item (default: the last 28 days).",
-        "operationId": "unmatched_v1_orders_unmatched_get",
+        "operationId": "unmatched",
         "security": [
           {
             "HTTPBearer": []
@@ -3062,7 +3062,7 @@
           "orders"
         ],
         "summary": "Get Order",
-        "operationId": "get_order_v1_orders__order_id__get",
+        "operationId": "get_order",
         "security": [
           {
             "HTTPBearer": []
@@ -3111,7 +3111,7 @@
         ],
         "summary": "Replay",
         "description": "Rebuild all orders from the event log in the background (e.g. after renaming menu\nitems, so old sales map to them).",
-        "operationId": "replay_v1_orders_replay_post",
+        "operationId": "replay",
         "responses": {
           "202": {
             "description": "Successful Response",
@@ -3120,7 +3120,7 @@
                 "schema": {
                   "additionalProperties": true,
                   "type": "object",
-                  "title": "Response Replay V1 Orders Replay Post"
+                  "title": "Response Replay"
                 }
               }
             }
@@ -3139,7 +3139,7 @@
           "ledger"
         ],
         "summary": "List Fees",
-        "operationId": "list_fees_v1_channel_fees_get",
+        "operationId": "list_fees",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3150,7 +3150,7 @@
                     "$ref": "#/components/schemas/ChannelFee"
                   },
                   "type": "array",
-                  "title": "Response List Fees V1 Channel Fees Get"
+                  "title": "Response List Fees"
                 }
               }
             }
@@ -3170,7 +3170,7 @@
         ],
         "summary": "Set Fee",
         "description": "Applies to orders posted from now on; past postings keep the fee they were posted with.",
-        "operationId": "set_fee_v1_channel_fees__channel__put",
+        "operationId": "set_fee",
         "security": [
           {
             "HTTPBearer": []
@@ -3229,7 +3229,7 @@
           "ledger"
         ],
         "summary": "Profit",
-        "operationId": "profit_v1_reports_profit_get",
+        "operationId": "profit",
         "security": [
           {
             "HTTPBearer": []
@@ -3285,7 +3285,7 @@
       "get": {
         "summary": "Healthz",
         "description": "Liveness: the process is up. Never touches dependencies.",
-        "operationId": "healthz_healthz_get",
+        "operationId": "healthz",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3296,7 +3296,7 @@
                     "type": "string"
                   },
                   "type": "object",
-                  "title": "Response Healthz Healthz Get"
+                  "title": "Response Healthz"
                 }
               }
             }
@@ -3308,7 +3308,7 @@
       "get": {
         "summary": "Readyz",
         "description": "Readiness: can serve traffic, i.e. the database answers.",
-        "operationId": "readyz_readyz_get",
+        "operationId": "readyz",
         "responses": {
           "200": {
             "description": "Successful Response",

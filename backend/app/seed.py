@@ -103,6 +103,18 @@ MENU: dict[str, tuple[int, str | None]] = {
     "Basmati Rice": (349, "Steamed rice"),
     "Mango Lassi": (549, None),  # no recipe yet: the dashboard shows its cost as unknown
 }
+CLOSING_ITEMS = [
+    "Fryer off, oil filtered",
+    "Tandoor off and covered",
+    "Walk-in door shut, temperature logged",
+    "Gravies cooled, labeled and dated",
+    "Prep surfaces sanitized",
+    "Floors swept and mopped",
+    "Trash and recycling out",
+    "Till counted, cash in the safe",
+    "Back door locked, alarm set",
+]
+
 # Weighted mains/sides; "Chef's Special" is not on the menu, so it stays unmapped.
 MAINS = ["Butter Chicken"] * 5 + ["Paneer Makhani"] * 3 + ["Lamb Rogan Josh"] * 2
 MAINS += ["Chana Masala"] * 2 + ["Saag Paneer"] * 2 + ["Chef's Special"]
@@ -231,6 +243,16 @@ async def seed(password: str, reset: bool = False) -> None:
             )
         for channel, (_, bps) in CHANNELS.items():
             await call("PUT", f"/v1/channel-fees/{channel}", {"commission_bps": bps})
+        await call(
+            "POST",
+            "/v1/checklists/templates",
+            {
+                "name": "Closing checklist",
+                "days_of_week": list(range(7)),
+                "due_minutes": 23 * 60,
+                "items": [{"label": label} for label in CLOSING_ITEMS],
+            },
+        )
         for name, (rate, (start, end)) in STAFF.items():
             staff = await call("POST", "/v1/staff", {"name": name, "hourly_rate_cents": rate})
             # Past four weeks plus the week ahead, so the schedule page has a full grid.

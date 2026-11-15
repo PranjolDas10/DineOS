@@ -14,7 +14,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Login */
-        post: operations["login_v1_auth_login_post"];
+        post: operations["login"];
         delete?: never;
         options?: never;
         head?: never;
@@ -31,7 +31,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Refresh */
-        post: operations["refresh_v1_auth_refresh_post"];
+        post: operations["refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -48,7 +48,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Logout */
-        post: operations["logout_v1_auth_logout_post"];
+        post: operations["logout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -67,7 +67,7 @@ export interface paths {
          * @description Who is signed in, and the restaurant's clock. RLS limits both queries to the caller's
          *     tenant, so neither needs a tenant filter.
          */
-        get: operations["me_v1_auth_me_get"];
+        get: operations["me"];
         put?: never;
         post?: never;
         delete?: never;
@@ -84,10 +84,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Suppliers */
-        get: operations["list_suppliers_v1_suppliers_get"];
+        get: operations["list_suppliers"];
         put?: never;
         /** Create Supplier */
-        post: operations["create_supplier_v1_suppliers_post"];
+        post: operations["create_supplier"];
         delete?: never;
         options?: never;
         head?: never;
@@ -102,14 +102,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Supplier */
-        get: operations["get_supplier_v1_suppliers__supplier_id__get"];
+        get: operations["get_supplier"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update Supplier */
-        patch: operations["update_supplier_v1_suppliers__supplier_id__patch"];
+        patch: operations["update_supplier"];
         trace?: never;
     };
     "/v1/ingredients": {
@@ -120,10 +120,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Ingredients */
-        get: operations["list_ingredients_v1_ingredients_get"];
+        get: operations["list_ingredients"];
         put?: never;
         /** Create Ingredient */
-        post: operations["create_ingredient_v1_ingredients_post"];
+        post: operations["create_ingredient"];
         delete?: never;
         options?: never;
         head?: never;
@@ -138,14 +138,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Ingredient */
-        get: operations["get_ingredient_v1_ingredients__ingredient_id__get"];
+        get: operations["get_ingredient"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update Ingredient */
-        patch: operations["update_ingredient_v1_ingredients__ingredient_id__patch"];
+        patch: operations["update_ingredient"];
         trace?: never;
     };
     "/v1/ingredients/{ingredient_id}/prices": {
@@ -156,10 +156,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Prices */
-        get: operations["list_prices_v1_ingredients__ingredient_id__prices_get"];
+        get: operations["list_prices"];
         put?: never;
         /** Add Price */
-        post: operations["add_price_v1_ingredients__ingredient_id__prices_post"];
+        post: operations["add_price"];
         delete?: never;
         options?: never;
         head?: never;
@@ -174,10 +174,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Recipes */
-        get: operations["list_recipes_v1_recipes_get"];
+        get: operations["list_recipes"];
         put?: never;
         /** Create Recipe */
-        post: operations["create_recipe_v1_recipes_post"];
+        post: operations["create_recipe"];
         delete?: never;
         options?: never;
         head?: never;
@@ -192,14 +192,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Recipe */
-        get: operations["get_recipe_v1_recipes__recipe_id__get"];
+        get: operations["get_recipe"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update Recipe */
-        patch: operations["update_recipe_v1_recipes__recipe_id__patch"];
+        patch: operations["update_recipe"];
         trace?: never;
     };
     "/v1/recipes/{recipe_id}/lines": {
@@ -210,9 +210,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get Lines */
-        get: operations["get_lines_v1_recipes__recipe_id__lines_get"];
+        get: operations["get_lines"];
         /** Replace Lines */
-        put: operations["replace_lines_v1_recipes__recipe_id__lines_put"];
+        put: operations["replace_lines"];
         post?: never;
         delete?: never;
         options?: never;
@@ -228,10 +228,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Menu Items */
-        get: operations["list_menu_items_v1_menu_items_get"];
+        get: operations["list_menu_items"];
         put?: never;
         /** Create Menu Item */
-        post: operations["create_menu_item_v1_menu_items_post"];
+        post: operations["create_menu_item"];
         delete?: never;
         options?: never;
         head?: never;
@@ -246,14 +246,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Menu Item */
-        get: operations["get_menu_item_v1_menu_items__item_id__get"];
+        get: operations["get_menu_item"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update Menu Item */
-        patch: operations["update_menu_item_v1_menu_items__item_id__patch"];
+        patch: operations["update_menu_item"];
         trace?: never;
     };
     "/v1/recipes/{recipe_id}/cost": {
@@ -264,7 +264,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Recipe Cost */
-        get: operations["get_recipe_cost_v1_recipes__recipe_id__cost_get"];
+        get: operations["get_recipe_cost"];
         put?: never;
         post?: never;
         delete?: never;
@@ -281,7 +281,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Dish Cost */
-        get: operations["get_dish_cost_v1_menu_items__item_id__cost_get"];
+        get: operations["get_dish_cost"];
         put?: never;
         post?: never;
         delete?: never;
@@ -298,7 +298,7 @@ export interface paths {
             cookie?: never;
         };
         /** Food Cost Report */
-        get: operations["food_cost_report_v1_reports_food_cost_get"];
+        get: operations["food_cost_report"];
         put?: never;
         post?: never;
         delete?: never;
@@ -319,7 +319,7 @@ export interface paths {
          * @description Composed here, not in menu.service: sales volume belongs to orders, and orders.service
          *     already imports menu.service, so the service can't import it back.
          */
-        get: operations["margin_watch_v1_reports_margin_watch_get"];
+        get: operations["margin_watch"];
         put?: never;
         post?: never;
         delete?: never;
@@ -336,7 +336,7 @@ export interface paths {
             cookie?: never;
         };
         /** Menu Matrix */
-        get: operations["menu_matrix_v1_reports_menu_matrix_get"];
+        get: operations["menu_matrix"];
         put?: never;
         post?: never;
         delete?: never;
@@ -355,11 +355,11 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Upload Url
+         * Receipt Upload Url
          * @description Step 1: get a short-lived URL, then PUT the photo straight to storage with the same
          *     Content-Type. The API never handles image bytes.
          */
-        post: operations["upload_url_v1_receipts_upload_url_post"];
+        post: operations["receipt_upload_url"];
         delete?: never;
         options?: never;
         head?: never;
@@ -374,13 +374,13 @@ export interface paths {
             cookie?: never;
         };
         /** List Receipts */
-        get: operations["list_receipts_v1_receipts_get"];
+        get: operations["list_receipts"];
         put?: never;
         /**
          * Create Receipt
          * @description Step 2: after the upload succeeds, register it. Parsing starts in the background.
          */
-        post: operations["create_receipt_v1_receipts_post"];
+        post: operations["create_receipt"];
         delete?: never;
         options?: never;
         head?: never;
@@ -395,7 +395,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Receipt */
-        get: operations["get_receipt_v1_receipts__receipt_id__get"];
+        get: operations["get_receipt"];
         put?: never;
         post?: never;
         delete?: never;
@@ -417,7 +417,7 @@ export interface paths {
          * Confirm Receipt
          * @description Owner-reviewed values become prices and an eval label. Every line must be decided.
          */
-        post: operations["confirm_receipt_v1_receipts__receipt_id__confirm_post"];
+        post: operations["confirm_receipt"];
         delete?: never;
         options?: never;
         head?: never;
@@ -432,10 +432,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Staff */
-        get: operations["list_staff_v1_staff_get"];
+        get: operations["list_staff"];
         put?: never;
         /** Create Staff */
-        post: operations["create_staff_v1_staff_post"];
+        post: operations["create_staff"];
         delete?: never;
         options?: never;
         head?: never;
@@ -450,14 +450,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Staff */
-        get: operations["get_staff_v1_staff__staff_id__get"];
+        get: operations["get_staff"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /** Update Staff */
-        patch: operations["update_staff_v1_staff__staff_id__patch"];
+        patch: operations["update_staff"];
         trace?: never;
     };
     "/v1/shifts": {
@@ -468,13 +468,13 @@ export interface paths {
             cookie?: never;
         };
         /** List Shifts */
-        get: operations["list_shifts_v1_shifts_get"];
+        get: operations["list_shifts"];
         put?: never;
         /**
          * Create Shift
          * @description 409 if this person already has an overlapping shift (enforced by the database).
          */
-        post: operations["create_shift_v1_shifts_post"];
+        post: operations["create_shift"];
         delete?: never;
         options?: never;
         head?: never;
@@ -492,11 +492,11 @@ export interface paths {
         put?: never;
         post?: never;
         /** Delete Shift */
-        delete: operations["delete_shift_v1_shifts__shift_id__delete"];
+        delete: operations["delete_shift"];
         options?: never;
         head?: never;
         /** Move Shift */
-        patch: operations["move_shift_v1_shifts__shift_id__patch"];
+        patch: operations["move_shift"];
         trace?: never;
     };
     "/v1/reports/labor-cost": {
@@ -507,7 +507,7 @@ export interface paths {
             cookie?: never;
         };
         /** Labor Cost */
-        get: operations["labor_cost_v1_reports_labor_cost_get"];
+        get: operations["labor_cost"];
         put?: never;
         post?: never;
         delete?: never;
@@ -524,10 +524,10 @@ export interface paths {
             cookie?: never;
         };
         /** List Templates */
-        get: operations["list_templates_v1_checklists_templates_get"];
+        get: operations["list_templates"];
         put?: never;
         /** Create Template */
-        post: operations["create_template_v1_checklists_templates_post"];
+        post: operations["create_template"];
         delete?: never;
         options?: never;
         head?: never;
@@ -551,7 +551,7 @@ export interface paths {
          * Update Template
          * @description Changes apply from the next run; today's run keeps the items it started with.
          */
-        patch: operations["update_template_v1_checklists_templates__template_id__patch"];
+        patch: operations["update_template"];
         trace?: never;
     };
     "/v1/checklists/today": {
@@ -566,7 +566,7 @@ export interface paths {
          * @description Runs for a business day (default: today, restaurant time). Creates them if the daily
          *     job hasn't yet, and re-seeds the daily job chain if it ever broke.
          */
-        get: operations["today_v1_checklists_today_get"];
+        get: operations["today"];
         put?: never;
         post?: never;
         delete?: never;
@@ -585,7 +585,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Record Checks */
-        post: operations["record_checks_v1_checklists_runs__run_id__checks_post"];
+        post: operations["record_checks"];
         delete?: never;
         options?: never;
         head?: never;
@@ -603,7 +603,7 @@ export interface paths {
          * List Alerts
          * @description Newest first. ponytail: no cursor; the Today screen shows the latest few.
          */
-        get: operations["list_alerts_v1_alerts_get"];
+        get: operations["list_alerts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -625,7 +625,7 @@ export interface paths {
          * Mark Read
          * @description Idempotent: marking an already-read alert keeps its first read time.
          */
-        post: operations["mark_read_v1_alerts__alert_id__read_post"];
+        post: operations["mark_read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -642,10 +642,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Upload Url
+         * Import Upload Url
          * @description Step 1: upload the sales export (CSV) straight to storage with this URL.
          */
-        post: operations["upload_url_v1_imports_upload_url_post"];
+        post: operations["import_upload_url"];
         delete?: never;
         options?: never;
         head?: never;
@@ -660,13 +660,13 @@ export interface paths {
             cookie?: never;
         };
         /** List Imports */
-        get: operations["list_imports_v1_imports_get"];
+        get: operations["list_imports"];
         put?: never;
         /**
          * Create Import
          * @description Step 2: register the upload; orders are imported in the background.
          */
-        post: operations["create_import_v1_imports_post"];
+        post: operations["create_import"];
         delete?: never;
         options?: never;
         head?: never;
@@ -681,7 +681,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Import */
-        get: operations["get_import_v1_imports__import_id__get"];
+        get: operations["get_import"];
         put?: never;
         post?: never;
         delete?: never;
@@ -701,7 +701,7 @@ export interface paths {
          * List Orders
          * @description The unified inbox: every channel's orders in one time window (max 31 days).
          */
-        get: operations["list_orders_v1_orders_get"];
+        get: operations["list_orders"];
         put?: never;
         post?: never;
         delete?: never;
@@ -721,7 +721,7 @@ export interface paths {
          * Unmatched
          * @description Sold items that match no menu item (default: the last 28 days).
          */
-        get: operations["unmatched_v1_orders_unmatched_get"];
+        get: operations["unmatched"];
         put?: never;
         post?: never;
         delete?: never;
@@ -738,7 +738,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Order */
-        get: operations["get_order_v1_orders__order_id__get"];
+        get: operations["get_order"];
         put?: never;
         post?: never;
         delete?: never;
@@ -761,7 +761,7 @@ export interface paths {
          * @description Rebuild all orders from the event log in the background (e.g. after renaming menu
          *     items, so old sales map to them).
          */
-        post: operations["replay_v1_orders_replay_post"];
+        post: operations["replay"];
         delete?: never;
         options?: never;
         head?: never;
@@ -776,7 +776,7 @@ export interface paths {
             cookie?: never;
         };
         /** List Fees */
-        get: operations["list_fees_v1_channel_fees_get"];
+        get: operations["list_fees"];
         put?: never;
         post?: never;
         delete?: never;
@@ -797,7 +797,7 @@ export interface paths {
          * Set Fee
          * @description Applies to orders posted from now on; past postings keep the fee they were posted with.
          */
-        put: operations["set_fee_v1_channel_fees__channel__put"];
+        put: operations["set_fee"];
         post?: never;
         delete?: never;
         options?: never;
@@ -813,7 +813,7 @@ export interface paths {
             cookie?: never;
         };
         /** Profit */
-        get: operations["profit_v1_reports_profit_get"];
+        get: operations["profit"];
         put?: never;
         post?: never;
         delete?: never;
@@ -833,7 +833,7 @@ export interface paths {
          * Healthz
          * @description Liveness: the process is up. Never touches dependencies.
          */
-        get: operations["healthz_healthz_get"];
+        get: operations["healthz"];
         put?: never;
         post?: never;
         delete?: never;
@@ -853,7 +853,7 @@ export interface paths {
          * Readyz
          * @description Readiness: can serve traffic, i.e. the database answers.
          */
-        get: operations["readyz_readyz_get"];
+        get: operations["readyz"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2166,7 +2166,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login_v1_auth_login_post: {
+    login: {
         parameters: {
             query?: never;
             header?: never;
@@ -2199,7 +2199,7 @@ export interface operations {
             };
         };
     };
-    refresh_v1_auth_refresh_post: {
+    refresh: {
         parameters: {
             query?: never;
             header?: never;
@@ -2232,7 +2232,7 @@ export interface operations {
             };
         };
     };
-    logout_v1_auth_logout_post: {
+    logout: {
         parameters: {
             query?: never;
             header?: never;
@@ -2263,7 +2263,7 @@ export interface operations {
             };
         };
     };
-    me_v1_auth_me_get: {
+    me: {
         parameters: {
             query?: never;
             header?: never;
@@ -2283,7 +2283,7 @@ export interface operations {
             };
         };
     };
-    list_suppliers_v1_suppliers_get: {
+    list_suppliers: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -2315,7 +2315,7 @@ export interface operations {
             };
         };
     };
-    create_supplier_v1_suppliers_post: {
+    create_supplier: {
         parameters: {
             query?: never;
             header?: never;
@@ -2348,7 +2348,7 @@ export interface operations {
             };
         };
     };
-    get_supplier_v1_suppliers__supplier_id__get: {
+    get_supplier: {
         parameters: {
             query?: never;
             header?: never;
@@ -2379,7 +2379,7 @@ export interface operations {
             };
         };
     };
-    update_supplier_v1_suppliers__supplier_id__patch: {
+    update_supplier: {
         parameters: {
             query?: never;
             header?: {
@@ -2416,7 +2416,7 @@ export interface operations {
             };
         };
     };
-    list_ingredients_v1_ingredients_get: {
+    list_ingredients: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -2448,7 +2448,7 @@ export interface operations {
             };
         };
     };
-    create_ingredient_v1_ingredients_post: {
+    create_ingredient: {
         parameters: {
             query?: never;
             header?: never;
@@ -2481,7 +2481,7 @@ export interface operations {
             };
         };
     };
-    get_ingredient_v1_ingredients__ingredient_id__get: {
+    get_ingredient: {
         parameters: {
             query?: never;
             header?: never;
@@ -2512,7 +2512,7 @@ export interface operations {
             };
         };
     };
-    update_ingredient_v1_ingredients__ingredient_id__patch: {
+    update_ingredient: {
         parameters: {
             query?: never;
             header?: {
@@ -2549,7 +2549,7 @@ export interface operations {
             };
         };
     };
-    list_prices_v1_ingredients__ingredient_id__prices_get: {
+    list_prices: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -2583,7 +2583,7 @@ export interface operations {
             };
         };
     };
-    add_price_v1_ingredients__ingredient_id__prices_post: {
+    add_price: {
         parameters: {
             query?: never;
             header?: never;
@@ -2618,7 +2618,7 @@ export interface operations {
             };
         };
     };
-    list_recipes_v1_recipes_get: {
+    list_recipes: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -2650,7 +2650,7 @@ export interface operations {
             };
         };
     };
-    create_recipe_v1_recipes_post: {
+    create_recipe: {
         parameters: {
             query?: never;
             header?: never;
@@ -2683,7 +2683,7 @@ export interface operations {
             };
         };
     };
-    get_recipe_v1_recipes__recipe_id__get: {
+    get_recipe: {
         parameters: {
             query?: never;
             header?: never;
@@ -2714,7 +2714,7 @@ export interface operations {
             };
         };
     };
-    update_recipe_v1_recipes__recipe_id__patch: {
+    update_recipe: {
         parameters: {
             query?: never;
             header?: {
@@ -2751,7 +2751,7 @@ export interface operations {
             };
         };
     };
-    get_lines_v1_recipes__recipe_id__lines_get: {
+    get_lines: {
         parameters: {
             query?: never;
             header?: never;
@@ -2782,7 +2782,7 @@ export interface operations {
             };
         };
     };
-    replace_lines_v1_recipes__recipe_id__lines_put: {
+    replace_lines: {
         parameters: {
             query?: never;
             header?: {
@@ -2819,7 +2819,7 @@ export interface operations {
             };
         };
     };
-    list_menu_items_v1_menu_items_get: {
+    list_menu_items: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -2851,7 +2851,7 @@ export interface operations {
             };
         };
     };
-    create_menu_item_v1_menu_items_post: {
+    create_menu_item: {
         parameters: {
             query?: never;
             header?: never;
@@ -2884,7 +2884,7 @@ export interface operations {
             };
         };
     };
-    get_menu_item_v1_menu_items__item_id__get: {
+    get_menu_item: {
         parameters: {
             query?: never;
             header?: never;
@@ -2915,7 +2915,7 @@ export interface operations {
             };
         };
     };
-    update_menu_item_v1_menu_items__item_id__patch: {
+    update_menu_item: {
         parameters: {
             query?: never;
             header?: {
@@ -2952,7 +2952,7 @@ export interface operations {
             };
         };
     };
-    get_recipe_cost_v1_recipes__recipe_id__cost_get: {
+    get_recipe_cost: {
         parameters: {
             query?: never;
             header?: never;
@@ -2983,7 +2983,7 @@ export interface operations {
             };
         };
     };
-    get_dish_cost_v1_menu_items__item_id__cost_get: {
+    get_dish_cost: {
         parameters: {
             query?: never;
             header?: never;
@@ -3014,7 +3014,7 @@ export interface operations {
             };
         };
     };
-    food_cost_report_v1_reports_food_cost_get: {
+    food_cost_report: {
         parameters: {
             query?: never;
             header?: never;
@@ -3034,7 +3034,7 @@ export interface operations {
             };
         };
     };
-    margin_watch_v1_reports_margin_watch_get: {
+    margin_watch: {
         parameters: {
             query?: {
                 days?: number;
@@ -3065,7 +3065,7 @@ export interface operations {
             };
         };
     };
-    menu_matrix_v1_reports_menu_matrix_get: {
+    menu_matrix: {
         parameters: {
             query?: {
                 days?: number;
@@ -3096,7 +3096,7 @@ export interface operations {
             };
         };
     };
-    upload_url_v1_receipts_upload_url_post: {
+    receipt_upload_url: {
         parameters: {
             query?: never;
             header?: never;
@@ -3129,7 +3129,7 @@ export interface operations {
             };
         };
     };
-    list_receipts_v1_receipts_get: {
+    list_receipts: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -3161,7 +3161,7 @@ export interface operations {
             };
         };
     };
-    create_receipt_v1_receipts_post: {
+    create_receipt: {
         parameters: {
             query?: never;
             header?: never;
@@ -3194,7 +3194,7 @@ export interface operations {
             };
         };
     };
-    get_receipt_v1_receipts__receipt_id__get: {
+    get_receipt: {
         parameters: {
             query?: never;
             header?: never;
@@ -3225,7 +3225,7 @@ export interface operations {
             };
         };
     };
-    confirm_receipt_v1_receipts__receipt_id__confirm_post: {
+    confirm_receipt: {
         parameters: {
             query?: never;
             header?: {
@@ -3262,7 +3262,7 @@ export interface operations {
             };
         };
     };
-    list_staff_v1_staff_get: {
+    list_staff: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -3294,7 +3294,7 @@ export interface operations {
             };
         };
     };
-    create_staff_v1_staff_post: {
+    create_staff: {
         parameters: {
             query?: never;
             header?: never;
@@ -3327,7 +3327,7 @@ export interface operations {
             };
         };
     };
-    get_staff_v1_staff__staff_id__get: {
+    get_staff: {
         parameters: {
             query?: never;
             header?: never;
@@ -3358,7 +3358,7 @@ export interface operations {
             };
         };
     };
-    update_staff_v1_staff__staff_id__patch: {
+    update_staff: {
         parameters: {
             query?: never;
             header?: {
@@ -3395,7 +3395,7 @@ export interface operations {
             };
         };
     };
-    list_shifts_v1_shifts_get: {
+    list_shifts: {
         parameters: {
             query: {
                 start: string;
@@ -3427,7 +3427,7 @@ export interface operations {
             };
         };
     };
-    create_shift_v1_shifts_post: {
+    create_shift: {
         parameters: {
             query?: never;
             header?: never;
@@ -3460,7 +3460,7 @@ export interface operations {
             };
         };
     };
-    delete_shift_v1_shifts__shift_id__delete: {
+    delete_shift: {
         parameters: {
             query?: never;
             header?: {
@@ -3491,7 +3491,7 @@ export interface operations {
             };
         };
     };
-    move_shift_v1_shifts__shift_id__patch: {
+    move_shift: {
         parameters: {
             query?: never;
             header?: {
@@ -3528,7 +3528,7 @@ export interface operations {
             };
         };
     };
-    labor_cost_v1_reports_labor_cost_get: {
+    labor_cost: {
         parameters: {
             query: {
                 from: string;
@@ -3560,7 +3560,7 @@ export interface operations {
             };
         };
     };
-    list_templates_v1_checklists_templates_get: {
+    list_templates: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -3592,7 +3592,7 @@ export interface operations {
             };
         };
     };
-    create_template_v1_checklists_templates_post: {
+    create_template: {
         parameters: {
             query?: never;
             header?: never;
@@ -3625,7 +3625,7 @@ export interface operations {
             };
         };
     };
-    update_template_v1_checklists_templates__template_id__patch: {
+    update_template: {
         parameters: {
             query?: never;
             header?: {
@@ -3662,7 +3662,7 @@ export interface operations {
             };
         };
     };
-    today_v1_checklists_today_get: {
+    today: {
         parameters: {
             query?: {
                 day?: string | null;
@@ -3693,7 +3693,7 @@ export interface operations {
             };
         };
     };
-    record_checks_v1_checklists_runs__run_id__checks_post: {
+    record_checks: {
         parameters: {
             query?: never;
             header?: never;
@@ -3728,7 +3728,7 @@ export interface operations {
             };
         };
     };
-    list_alerts_v1_alerts_get: {
+    list_alerts: {
         parameters: {
             query?: {
                 unread?: boolean;
@@ -3760,7 +3760,7 @@ export interface operations {
             };
         };
     };
-    mark_read_v1_alerts__alert_id__read_post: {
+    mark_read: {
         parameters: {
             query?: never;
             header?: never;
@@ -3789,7 +3789,7 @@ export interface operations {
             };
         };
     };
-    upload_url_v1_imports_upload_url_post: {
+    import_upload_url: {
         parameters: {
             query?: never;
             header?: never;
@@ -3809,7 +3809,7 @@ export interface operations {
             };
         };
     };
-    list_imports_v1_imports_get: {
+    list_imports: {
         parameters: {
             query?: {
                 cursor?: string | null;
@@ -3841,7 +3841,7 @@ export interface operations {
             };
         };
     };
-    create_import_v1_imports_post: {
+    create_import: {
         parameters: {
             query?: never;
             header?: never;
@@ -3874,7 +3874,7 @@ export interface operations {
             };
         };
     };
-    get_import_v1_imports__import_id__get: {
+    get_import: {
         parameters: {
             query?: never;
             header?: never;
@@ -3905,7 +3905,7 @@ export interface operations {
             };
         };
     };
-    list_orders_v1_orders_get: {
+    list_orders: {
         parameters: {
             query: {
                 start: string;
@@ -3937,7 +3937,7 @@ export interface operations {
             };
         };
     };
-    unmatched_v1_orders_unmatched_get: {
+    unmatched: {
         parameters: {
             query?: {
                 since?: string | null;
@@ -3968,7 +3968,7 @@ export interface operations {
             };
         };
     };
-    get_order_v1_orders__order_id__get: {
+    get_order: {
         parameters: {
             query?: never;
             header?: never;
@@ -3999,7 +3999,7 @@ export interface operations {
             };
         };
     };
-    replay_v1_orders_replay_post: {
+    replay: {
         parameters: {
             query?: never;
             header?: never;
@@ -4021,7 +4021,7 @@ export interface operations {
             };
         };
     };
-    list_fees_v1_channel_fees_get: {
+    list_fees: {
         parameters: {
             query?: never;
             header?: never;
@@ -4041,7 +4041,7 @@ export interface operations {
             };
         };
     };
-    set_fee_v1_channel_fees__channel__put: {
+    set_fee: {
         parameters: {
             query?: never;
             header?: never;
@@ -4076,7 +4076,7 @@ export interface operations {
             };
         };
     };
-    profit_v1_reports_profit_get: {
+    profit: {
         parameters: {
             query: {
                 from: string;
@@ -4108,7 +4108,7 @@ export interface operations {
             };
         };
     };
-    healthz_healthz_get: {
+    healthz: {
         parameters: {
             query?: never;
             header?: never;
@@ -4130,7 +4130,7 @@ export interface operations {
             };
         };
     };
-    readyz_readyz_get: {
+    readyz: {
         parameters: {
             query?: never;
             header?: never;
