@@ -74,7 +74,7 @@ class ReceiptDetail(ReceiptOut):
 
 
 @router.post("/upload-url", response_model=UploadUrlOut)
-async def upload_url(body: UploadUrlIn, claims: Claims) -> Any:
+async def receipt_upload_url(body: UploadUrlIn, claims: Claims) -> Any:
     """Step 1: get a short-lived URL, then PUT the photo straight to storage with the same
     Content-Type. The API never handles image bytes."""
     key = service.new_object_key(claims["tid"], body.content_type)

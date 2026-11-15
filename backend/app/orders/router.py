@@ -86,7 +86,7 @@ class UnmatchedSales(BaseModel):
 
 
 @router.post("/imports/upload-url", response_model=UploadUrlOut)
-async def upload_url(claims: Claims) -> Any:
+async def import_upload_url(claims: Claims) -> Any:
     """Step 1: upload the sales export (CSV) straight to storage with this URL."""
     key = service.new_object_key(claims["tid"])
     return {
