@@ -94,7 +94,10 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
               </Link>
             </>
           ) : (
-            <span aria-hidden className="size-9" />
+            <span role="link" aria-disabled="true" className="grid size-9 place-items-center rounded-md border border-line text-fg-muted opacity-50">
+              <ChevronRight aria-hidden className="size-4" />
+              <span className="sr-only">Next day</span>
+            </span>
           )}
         </nav>
       </div>

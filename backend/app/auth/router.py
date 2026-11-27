@@ -7,6 +7,7 @@ from pydantic import BaseModel, StringConstraints
 from sqlalchemy import text
 
 from app import ratelimit
+from app.api import Problem
 from app.auth import service
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
@@ -61,10 +62,15 @@ class Me(BaseModel):
 async def me(session: service.TenantSession, claims: service.Claims) -> Any:
     """Who is signed in, and the restaurant's clock. RLS limits both queries to the caller's
     tenant, so neither needs a tenant filter."""
-    name, timezone = (await session.execute(text("SELECT name, timezone FROM tenants"))).one()
+    tenant = (await session.execute(text("SELECT name, timezone FROM tenants"))).one_or_none()
     email = await session.scalar(
         text("SELECT email FROM users WHERE id = :id"), {"id": claims["sub"]}
     )
+    if tenant is None:
+        # A token can outlive its restaurant (tenant deleted). Say "sign in again",
+        # not 500, so the web app drops the session instead of failing every page.
+        raise Problem(401, "This account no longer exists.", {"WWW-Authenticate": "Bearer"})
+    name, timezone = tenant
     return {
         "restaurant": name,
         "timezone": timezone,

@@ -24,7 +24,7 @@ export default async function ReceiptsPage({ searchParams }: PageProps<"/receipt
   const waiting = items.filter((r) => r.status === "parsed").length;
 
   return (
-    <div className="rise mx-auto grid max-w-3xl gap-6 [&>*]:min-w-0">
+    <div className="rise mx-auto grid max-w-6xl gap-6 [&>*]:min-w-0 [&>*]:max-w-3xl">
       <div>
         <h1 className="text-2xl font-semibold">Receipts</h1>
         <p className="text-fg-muted">
