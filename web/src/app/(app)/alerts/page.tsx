@@ -23,7 +23,7 @@ export default async function AlertsPage() {
   const unread = items.filter((a) => a.read_at === null).length;
 
   return (
-    <div className="rise mx-auto grid max-w-3xl gap-6 [&>*]:min-w-0">
+    <div className="rise mx-auto grid max-w-6xl gap-6 [&>*]:min-w-0 [&>*]:max-w-3xl">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Alerts</h1>
