@@ -1,12 +1,11 @@
-import Link from "next/link";
-import { Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { Mark } from "@/components/mark";
 import { api, me as whoAmI } from "@/lib/api";
 
 import { logout } from "../actions";
 import { CommandMenu } from "./command-menu";
-import { Nav } from "./nav";
+import { AlertsBell, Nav } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 
 // Sidebar at laptop width (owner at night). On a phone: a slim top bar and a bottom tab bar in
@@ -36,16 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="ml-auto w-32 lg:ml-0 lg:w-auto">
           <CommandMenu />
         </div>
-        <Link
-          href="/alerts"
-          className="relative -mx-2 grid size-11 place-items-center rounded-md text-fg-muted transition-colors hover:text-fg lg:hidden"
-        >
-          <Bell aria-hidden className="size-5" />
-          <span className="sr-only">Alerts{unread > 0 && `, ${unread} new`}</span>
-          {unread > 0 && (
-            <span aria-hidden className="absolute top-1.5 right-1.5 size-2 rounded-full bg-danger ring-2 ring-bg" />
-          )}
-        </Link>
+        <AlertsBell unread={unread} />
         <nav
           aria-label="Main"
           className="fixed inset-x-0 bottom-0 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:static lg:border-0 lg:bg-transparent lg:pb-0"

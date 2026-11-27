@@ -63,3 +63,19 @@ export function Nav({ counts = {} }: { counts?: Record<string, number> }) {
     </div>
   );
 }
+
+/** Alerts on a phone: the bottom bar holds five tabs, so alerts get a bell in the top bar. */
+export function AlertsBell({ unread }: { unread: number }) {
+  const pathname = usePathname();
+  return (
+    <Link
+      href="/alerts"
+      aria-current={pathname.startsWith("/alerts") ? "page" : undefined}
+      className="relative -mx-2 grid size-11 place-items-center rounded-md text-fg-muted transition-colors hover:text-fg aria-[current=page]:text-fg lg:hidden"
+    >
+      <Bell aria-hidden className="size-5" />
+      <span className="sr-only">Alerts{unread > 0 && `, ${unread >= 100 ? "99+" : unread} new`}</span>
+      {unread > 0 && <span aria-hidden className="absolute top-1.5 right-1.5 size-2 rounded-full bg-danger ring-2 ring-bg" />}
+    </Link>
+  );
+}
