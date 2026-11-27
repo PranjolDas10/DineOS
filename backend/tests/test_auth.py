@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.auth.service import hash_password
 from app.config import MigrationSettings, settings
-from tests.conftest import MakeTenant
+from tests.conftest import MakeTenant, auth_headers
 
 pytestmark = pytest.mark.anyio
 PASSWORD = "correct horse battery staple"
@@ -59,6 +59,13 @@ async def test_me_names_the_restaurant_and_its_local_date(
     body = resp.json()
     assert (body["restaurant"], body["timezone"], body["email"]) == ("test", "UTC", owner_email)
     assert body["today"] == datetime.now(UTC).date().isoformat()
+
+
+async def test_me_is_401_once_the_tenant_is_gone(client: AsyncClient) -> None:
+    """A still-valid token for a deleted restaurant means "sign in again", not a server error."""
+    resp = await client.get("/v1/auth/me", headers=auth_headers(uuid.uuid4()))
+    assert resp.status_code == 401
+    assert resp.headers["www-authenticate"] == "Bearer"
 
 
 async def test_bad_credentials_look_identical(client: AsyncClient, owner_email: str) -> None:
