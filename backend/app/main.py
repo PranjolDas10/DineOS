@@ -14,6 +14,7 @@ from app.auth.router import router as auth_router
 from app.checklists.router import router as checklists_router
 from app.config import settings
 from app.db import engine, get_session
+from app.integrations.router import router as integrations_router
 from app.inventory.router import router as inventory_router
 from app.ledger.router import router as ledger_router
 from app.menu.router import router as menu_router
@@ -47,6 +48,7 @@ app.include_router(checklists_router)
 app.include_router(alerts_router)
 app.include_router(orders_router)
 app.include_router(ledger_router)
+app.include_router(integrations_router)
 
 
 @app.get("/healthz")

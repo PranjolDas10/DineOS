@@ -35,6 +35,7 @@ class Order(Entity):
     source: Mapped[str]
     external_id: Mapped[str]
     channel: Mapped[str]
+    status: Mapped[str]
     placed_at: Mapped[datetime]
     subtotal_cents: Mapped[int]
     tax_cents: Mapped[int]

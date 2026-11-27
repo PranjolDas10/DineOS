@@ -118,6 +118,9 @@ async def project(
         "external_id": payload["external_id"],
         "channel": payload["channel"],
         "placed_at": datetime.fromisoformat(payload["placed_at"]),
+        # Absent means completed: CSV payloads never carried it, and adding the key to them
+        # would change their content hash and turn every re-import into a "new version".
+        "status": payload.get("status", "completed"),
         "subtotal_cents": subtotal,
         "tax_cents": payload["tax_cents"],
         "tip_cents": payload["tip_cents"],
@@ -193,6 +196,7 @@ async def order_for_posting(session: AsyncSession, order_id: UUID) -> dict[str, 
         "id": order.id,
         "event_id": order.event_id,
         "channel": order.channel,
+        "status": order.status,
         "placed_at": order.placed_at,
         "subtotal_cents": order.subtotal_cents,
         "tax_cents": order.tax_cents,

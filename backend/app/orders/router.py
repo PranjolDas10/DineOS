@@ -46,6 +46,7 @@ class OrderOut(BaseModel):
     source: str
     external_id: str
     channel: str
+    status: str
     placed_at: datetime
     subtotal_cents: int
     tax_cents: int

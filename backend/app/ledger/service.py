@@ -101,6 +101,9 @@ async def post_order(session: AsyncSession, payload: dict[str, Any]) -> None:
             reverses_id=previous.id,
         )
 
+    if order["status"] == "cancelled":
+        return  # reversing the last sale is the whole posting: a cancelled order earns nothing
+
     tz = ZoneInfo(await session.scalar(text("SELECT timezone FROM tenants")))
     bps = await session.scalar(
         text("SELECT commission_bps FROM channel_fees WHERE channel = :c"), {"c": order["channel"]}

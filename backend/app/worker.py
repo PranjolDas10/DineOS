@@ -8,6 +8,7 @@ from app import jobs
 # Importing a module registers its @jobs.job handlers.
 from app.checklists import service as _checklists  # noqa: F401
 from app.config import settings
+from app.integrations import service as _integrations  # noqa: F401
 from app.ledger import service as _ledger  # noqa: F401
 from app.observability import setup_logging, start_metrics_server
 from app.orders import service as _orders  # noqa: F401

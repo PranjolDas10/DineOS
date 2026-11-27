@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     s3_public_endpoint_url: str = "http://localhost:8333"
     # Cheapest model first; the eval harness decides whether a bigger one earns its cost.
     receipt_model: str = "claude-haiku-5-5"
+    # Uber Eats Marketplace app. The secret also signs Uber's webhooks. Unset = integration off.
+    uber_eats_client_id: str | None = None
+    uber_eats_client_secret: str | None = None
+    uber_eats_api_url: str = "https://api.uber.com"
+    uber_eats_auth_url: str = "https://auth.uber.com/oauth/v2/token"
 
 
 class MigrationSettings(BaseSettings):
